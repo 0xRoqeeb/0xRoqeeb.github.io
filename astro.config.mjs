@@ -7,7 +7,8 @@ import robotsTxt from 'astro-robots-txt';
 // https://astro.build/config
 export default defineConfig({
   // base: '.', // Set a path prefix.
-  site: 'https://example.com/', // Use to generate your sitemap and canonical URLs in your final build.
+  site: '0xRoqeeb.github.io/', // Use to generate your sitemap and canonical URLs in your final build.
+  base: 'fireeyesomg.github.io',
   trailingSlash: 'always', // Use to always append '/' at end of url
   markdown: {
     shikiConfig: {
