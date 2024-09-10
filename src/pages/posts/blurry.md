@@ -57,10 +57,6 @@ So, I decided to use a virtual environment (venv). If you already have ClearML r
 sudo apt install python3.11-venv
 ```
 
-Got it! Here’s the updated Markdown in one code block:
-
-markdown
-
 ### Setting Up ClearML
 
 I had some problems setting up ClearML, as despite installing the package, I was still having trouble running `clearml-init`. 
@@ -104,6 +100,8 @@ In settings page, press "Create new credentials", then press "Copy to clipboard"
 
 Paste copied configuration here:
 ```
+
+it's asking us to continue the setup with our credentials 
 we can get our new credentials from the dashbaord
 
 
@@ -242,17 +240,14 @@ this is a lot to unpack but long strory short
 Usage Check: The script checks if exactly one argument (path to the model file) is provided.
 
 File Extraction: Depending on the file type:
-
     POSIX tar archive: Extracts the contents to /opt/temp using tar.
     Zip archive: Extracts the contents to /opt/temp using unzip.
 
 Malicious Content Detection:
-
     It uses fickling to scan for malicious content in any .pkl or pickle files found within the extracted content.
     If any component is deemed overtly malicious, it deletes the model file.
 
 Execution:
-
     If the model file is considered safe after scanning, it processes the model using a Python script (/models/evaluate_model.py).
 
 #### evaluate_model.py
