@@ -3,7 +3,7 @@ layout: '@/templates/BasePost.astro'
 title: Sherlock Writeup HTB
 description: ['#DFIR #EventLogs #NTDS #ServiceManipulation #PrivilegeEscalation #LogonID #RootAccess']
 pubDate: 2024-09-10T00:00:00Z
-imgSrc: '[https://labs.hackthebox.com/storage/avatars/1ea2980b9dc2d11cf6a3f82f10ba8702.png](https://labs.hackthebox.com/storage/challenges/b137fdd1f79d56c7edf3365fea7520f2.png)'
+imgSrc: 'https://labs.hackthebox.com/storage/challenges/b137fdd1f79d56c7edf3365fea7520f2.png'
 imgAlt: 'Sherlock HTB Challenge Image'
 ---
 
