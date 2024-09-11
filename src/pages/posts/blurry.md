@@ -45,17 +45,6 @@ I chose to work with a simpler one, which can be found [here](https://github.com
 
 From the README, it was clear that we needed to set up ClearML on our host to make the exploit work.
 
-### Setting Up ClearML
-
-I had some problems setting up ClearML, as despite installing the package, I was still having trouble running `clearml-init`. 
-
-So, I decided to use a virtual environment (venv). If you already have ClearML running, you can skip this part. Otherwise, follow these steps:
-
-1. **Install the venv package if you don’t have it set up already:**
-
-```bash
-sudo apt install python3.11-venv
-```
 
 ### Setting Up ClearML
 
@@ -159,6 +148,7 @@ Now that we've set up ClearML, all that's left is to set up our listener, edit t
 
 it takes a short while so be patient in a few moments we get our shell
 
+## Privilege Escalation 
 then upgrade your shell
 ```bash
  sudo -l
