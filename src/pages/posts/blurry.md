@@ -41,7 +41,9 @@ After visiting blurry.htb, I was redirected to app.blurry.htb. I proxied the sit
 
 We’re greeted with the ClearML dashboard. After browsing around a bit, I decided to check for any known exploits before delving deeper. Fortunately, I found two potential exploits.
 
-I chose to work with a simpler one, which can be found [here](https://github.com/h3xm4n/ClearML-vulnerability-exploit-RCE-2024-CVE-2024-24590-/tree/main). 
+I chose to work with a simpler one, which can be found <a href="https://github.com/h3xm4n/ClearML-vulnerability-exploit-RCE-2024-CVE-2024-24590-/tree/main" target="_blank">here</a>. 
+
+<a href="https://github.com/h3xm4n/ClearML-vulnerability-exploit-RCE-2024-CVE-2024-24590-/tree/main" target="_blank">here</a>
 
 From the README, it was clear that we needed to set up ClearML on our host to make the exploit work.
 
