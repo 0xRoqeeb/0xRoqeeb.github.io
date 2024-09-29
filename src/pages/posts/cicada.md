@@ -3,7 +3,7 @@ layout: '@/templates/BasePost.astro'
 title: Cicada Writeup HTB
 description: ['#Windows #PrivilegeEscalation #SeBackupPrivilege #HashDump #RootShell']
 pubDate: 2024-09-29T19:46:00Z
-imgSrc: 'https://labs.hackthebox.com/storage/avatars/cicada_image.png](https://labs.hackthebox.com/storage/avatars/79616a32a057e5e672dadb51bb96dd04.png'
+imgSrc: 'https://labs.hackthebox.com/storage/avatars/79616a32a057e5e672dadb51bb96dd04.png'
 imgAlt: 'Cicada HTB Challenge Image'
 ---
 
