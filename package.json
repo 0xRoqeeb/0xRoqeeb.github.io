@@ -50,6 +50,7 @@
   },
   "dependencies": {
     "astro-boilerplate-components": "^1.0.16",
+    "astro-pagefind": "^2.0.0",
     "commander": "^12.1.0",
     "date-fns": "^2.30.0",
     "react": "^18.2.0",

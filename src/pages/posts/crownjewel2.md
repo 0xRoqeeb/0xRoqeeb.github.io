@@ -5,6 +5,7 @@ description: ['#DFIR #EventLogs #NTDS #ServiceManipulation #PrivilegeEscalation 
 pubDate: 2024-09-10T00:00:00Z
 imgSrc: 'https://labs.hackthebox.com/storage/challenges/b137fdd1f79d56c7edf3365fea7520f2.png'
 imgAlt: 'Sherlock HTB Challenge Image'
+tags: ['htb', 'windows', 'very-easy', 'dfir', 'active-directory']
 ---
 
 
@@ -26,8 +27,7 @@ imgAlt: 'Sherlock HTB Challenge Image'
 **Sherlock Scenario:** Forela's Domain environment is pure chaos. Just got another alert from the Domain Controller indicating that the NTDS.dit database is being exfiltrated. Just one day prior, you responded to an alert on the same Domain Controller where an attacker dumped NTDS.dit via the `vssadmin` utility. Although you managed to delete the dumped files, kick the attacker out of the DC, and restore a clean snapshot, the attackers have returned. This time, they have accessed the DC with a domain admin account using their persistent access in the environment and are abusing `ntdsutil` to dump the database again. Help Forela in these chaotic times!
 
 
-we first downloaded the files related to the incident. it was an archive, after extracting it
-We have three `.evtx` files, namely `Application`, `Security`, and `System`.
+We first downloaded the files related to the incident. It was an archive, and after extracting it we had three `.evtx` files, namely `Application`, `Security`, and `System`.
 
 
 ![files](https://github.com/user-attachments/assets/2381048b-4d41-4a6b-9d75-d20485eb692d)
@@ -43,7 +43,7 @@ Each log file type captures different events:
 ## Question 1
 When utilizing ntdsutil.exe to dump NTDS on disk, it simultaneously employs the Microsoft Shadow Copy Service. What is the most recent timestamp at which this service entered the running state, signifying the possible initiation of the NTDS dumping process?
 
-since we're dealing with a service we should focus on the System.evtx log, where Windows services' status changes are recorded.
+Since we're dealing with a service, we should focus on the `System.evtx` log, where Windows service state changes are recorded.
 
 
 

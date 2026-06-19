@@ -3,12 +3,12 @@ import react from '@astrojs/react';
 import tailwind from '@astrojs/tailwind';
 import sitemap from '@astrojs/sitemap';
 import robotsTxt from 'astro-robots-txt';
+import pagefind from 'astro-pagefind';
 
 // https://astro.build/config
 export default defineConfig({
   // base: '.', // Set a path prefix.
-  site: 'https://example.com//', // Use to generate your sitemap and canonical URLs in your final build.
- // site: '0xRoqeeb.github.io/'
+  site: 'https://0xroqeeb.github.io',
   trailingSlash: 'always', // Use to always append '/' at end of url
   markdown: {
     shikiConfig: {
@@ -17,5 +17,5 @@ export default defineConfig({
       theme: 'monokai',
     },
   },
-  integrations: [react(), tailwind({}), sitemap(), robotsTxt()],
+  integrations: [react(), tailwind({}), sitemap(), robotsTxt(), pagefind()],
 });

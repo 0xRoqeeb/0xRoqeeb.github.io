@@ -13,7 +13,7 @@ const Navbar = () => (
         <Logo
           icon={
             <svg
-              className="mr-1 h-10 w-10 stroke-cyan-600"
+              className="mr-1 size-10 stroke-cyan-600"
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"
               fill="none"
@@ -32,26 +32,41 @@ const Navbar = () => (
         />
       </a>
 
-      <NavMenu>
-        <NavMenuItem href="/posts/">Blogs</NavMenuItem>
-        <NavMenuItem href="/posts/">Writeups</NavMenuItem>
+      <div className="flex items-center gap-3">
+        <NavMenu>
+          <NavMenuItem href="/posts/">Blogs</NavMenuItem>
+          <NavMenuItem href="/posts/">Writeups</NavMenuItem>
 
-        <NavMenuItem
-          href="https://x.com/FireEyesOMG"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Twitter
-        </NavMenuItem>
+          <NavMenuItem href="https://x.com/FireEyesOMG" target="_blank">
+            Twitter
+          </NavMenuItem>
 
-        <NavMenuItem
-          href="https://github.com/0xRoqeeb"
-          target="_blank"
-          rel="noopener noreferrer"
+          <NavMenuItem href="https://github.com/0xRoqeeb" target="_blank">
+            Github
+          </NavMenuItem>
+        </NavMenu>
+
+        <button
+          id="search-trigger"
+          aria-label="Search"
+          className="rounded-md p-2 text-gray-400 transition-colors hover:bg-slate-700 hover:text-white"
         >
-          Github
-        </NavMenuItem>
-      </NavMenu>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="size-5"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z"
+            />
+          </svg>
+        </button>
+      </div>
     </NavbarTwoColumns>
   </Section>
 );

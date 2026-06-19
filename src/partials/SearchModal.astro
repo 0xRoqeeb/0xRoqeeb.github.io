@@ -1,0 +1,58 @@
+---
+import Search from 'astro-pagefind/components/Search.astro';
+---
+
+<div id="search-modal" class="fixed inset-0 z-50 hidden" role="dialog" aria-modal="true">
+  <div id="search-backdrop" class="absolute inset-0 bg-black/70 backdrop-blur-sm"></div>
+  <div class="relative mx-auto mt-24 max-w-2xl px-4">
+    <Search id="search" className="pagefind-ui" />
+  </div>
+</div>
+
+<style is:global>
+  .pagefind-ui__search-input {
+    background-color: #1e293b !important;
+    color: #f1f5f9 !important;
+    border-color: #334155 !important;
+  }
+  .pagefind-ui__result {
+    border-color: #334155 !important;
+  }
+  .pagefind-ui__result-title {
+    color: #67e8f9 !important;
+  }
+  .pagefind-ui__result-excerpt {
+    color: #94a3b8 !important;
+  }
+  .pagefind-ui__message {
+    color: #94a3b8 !important;
+  }
+</style>
+
+<script>
+  const modal = document.getElementById('search-modal');
+  const backdrop = document.getElementById('search-backdrop');
+
+  function openSearch() {
+    modal?.classList.remove('hidden');
+    setTimeout(() => {
+      const input = document.querySelector<HTMLInputElement>('.pagefind-ui__search-input');
+      input?.focus();
+    }, 50);
+  }
+
+  function closeSearch() {
+    modal?.classList.add('hidden');
+  }
+
+  document.getElementById('search-trigger')?.addEventListener('click', openSearch);
+  backdrop?.addEventListener('click', closeSearch);
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeSearch();
+    if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+      e.preventDefault();
+      openSearch();
+    }
+  });
+</script>

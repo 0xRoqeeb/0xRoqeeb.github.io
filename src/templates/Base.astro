@@ -1,18 +1,29 @@
 ---
 import { Footer } from '@/partials/Footer';
 import { Navbar } from '@/partials/Navbar';
+import SearchModal from '@/partials/SearchModal.astro';
 import { AppConfig } from '@/utils/AppConfig';
 
 export interface Props {
   head: {
     title: string;
     description: string;
+    ogImage?: string;
   };
 }
 
 const {
-  head: { title, description },
+  head: { title, description, ogImage },
 } = Astro.props as Props;
+
+const canonicalURL = new URL(Astro.url.pathname, Astro.site);
+const absoluteOgImage = ogImage
+  ? ogImage.startsWith('http')
+    ? ogImage
+    : Astro.site
+      ? new URL(ogImage, Astro.site).href
+      : ogImage
+  : undefined;
 ---
 
 <html lang='en'>
@@ -22,15 +33,88 @@ const {
     <title>{title}</title>
     <meta name='description' content={description} />
     <meta name='author' content={AppConfig.author} />
+    <link rel='canonical' href={canonicalURL} />
+
+    <!-- Open Graph -->
+    <meta property='og:title' content={title} />
+    <meta property='og:description' content={description} />
+    <meta property='og:url' content={canonicalURL} />
+    <meta property='og:site_name' content={AppConfig.site_name} />
+    {absoluteOgImage && <meta property='og:image' content={absoluteOgImage} />}
+    <meta property='og:type' content='website' />
+
+    <!-- Twitter Card -->
+    <meta name='twitter:card' content={absoluteOgImage ? 'summary_large_image' : 'summary'} />
+    <meta name='twitter:site' content='@FireEyesOMG' />
+    <meta name='twitter:title' content={title} />
+    <meta name='twitter:description' content={description} />
+    {absoluteOgImage && <meta name='twitter:image' content={absoluteOgImage} />}
 
     <link rel='alternate' type='application/rss+xml' href='/rss.xml' />
     <link rel='icon' type='image/x-icon' href='/favicon.ico' />
+
+    <style>
+      pre {
+        position: relative;
+      }
+      pre .copy-btn {
+        position: absolute;
+        top: 0.5rem;
+        right: 0.5rem;
+        background: rgb(51 65 85 / 0.9);
+        color: rgb(148 163 184);
+        border: none;
+        border-radius: 0.25rem;
+        padding: 0.2rem 0.55rem;
+        font-size: 0.7rem;
+        font-family: inherit;
+        cursor: pointer;
+        opacity: 0;
+        transition: opacity 0.15s, background 0.15s;
+      }
+      pre:hover .copy-btn {
+        opacity: 1;
+      }
+      pre .copy-btn:hover {
+        background: rgb(71 85 105);
+        color: #fff;
+      }
+      pre .copy-btn.copied {
+        opacity: 1;
+        color: rgb(52 211 153);
+      }
+    </style>
   </head>
   <body class='bg-slate-900 text-gray-100'>
     <Navbar />
+    <SearchModal />
 
     <slot></slot>
 
-<!-- <Footer /> --> 
+    <!-- <Footer /> -->
+
+    <script>
+      function addCopyButtons() {
+        document.querySelectorAll('pre').forEach((pre) => {
+          if (pre.querySelector('.copy-btn')) return;
+          const btn = document.createElement('button');
+          btn.textContent = 'Copy';
+          btn.className = 'copy-btn';
+          pre.appendChild(btn);
+          btn.addEventListener('click', async () => {
+            const text = pre.querySelector('code')?.textContent ?? '';
+            await navigator.clipboard.writeText(text);
+            btn.textContent = 'Copied!';
+            btn.classList.add('copied');
+            setTimeout(() => {
+              btn.textContent = 'Copy';
+              btn.classList.remove('copied');
+            }, 2000);
+          });
+        });
+      }
+      addCopyButtons();
+      document.addEventListener('astro:after-swap', addCopyButtons);
+    </script>
   </body>
 </html>

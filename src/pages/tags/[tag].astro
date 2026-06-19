@@ -1,0 +1,43 @@
+---
+import { Section } from 'astro-boilerplate-components';
+
+import type { IFrontmatterWithTags } from '@/partials/PostCard';
+import { PostGallery } from '@/partials/PostGallery';
+import Base from '@/templates/Base.astro';
+import { AppConfig } from '@/utils/AppConfig';
+import { getAllTags, sortByDate } from '@/utils/Posts';
+
+export async function getStaticPaths() {
+  const allPosts = await Astro.glob<IFrontmatterWithTags>('../posts/*.md');
+  const tags = getAllTags(allPosts);
+
+  return tags.map((tag) => ({
+    params: { tag },
+    props: {
+      posts: sortByDate(
+        allPosts.filter((post) => post.frontmatter.tags?.includes(tag))
+      ),
+    },
+  }));
+}
+
+const { tag } = Astro.params;
+const { posts } = Astro.props;
+const title = `#${tag} — ${AppConfig.site_name}`;
+---
+
+<Base head={{ title, description: `Writeups tagged with #${tag}` }}>
+  <Section>
+    <div class="mb-8">
+      <a href="/posts/" class="text-sm text-gray-400 hover:text-cyan-400">← All writeups</a>
+      <h1 class="mt-4 text-3xl font-bold">
+        Tagged <span class="text-cyan-400">#{tag}</span>
+      </h1>
+      <p class="mt-1 text-sm text-gray-400">
+        {posts.length} writeup{posts.length !== 1 ? 's' : ''}
+      </p>
+    </div>
+
+    <PostGallery postList={posts} />
+  </Section>
+</Base>

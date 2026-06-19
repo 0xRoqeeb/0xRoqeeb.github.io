@@ -5,6 +5,7 @@ description: ['#ClearML #ModelExploit #PrivilegeEscalation #FileFormatBypass #To
 pubDate: 2024-09-10T19:46:00Z
 imgSrc: 'https://labs.hackthebox.com/storage/avatars/344998b24aad421410cabf912d3dc3af.png'
 imgAlt: 'Blurry HTB Challenge Image'
+tags: ['htb', 'linux', 'medium', 'privesc', 'python']
 ---
 
 
@@ -31,7 +32,7 @@ Add the following lines to your `/etc/hosts` file:
 
 I'm going to be straightforward with this write-up because I didn't spend a lot of time on enumeration—it was fairly quick for me. Thus, I'm skipping the usual enumeration steps and jumping straight to the exploitation phase, as that's where I focused my efforts.
 
-After visiting blurry.htb, I was redirected to app.blurry.htb. I proxied the site through Burp Suite, which revealed additional subdomains. i added them to my /etc/hosts files
+After visiting blurry.htb, I was redirected to app.blurry.htb. I proxied the site through Burp Suite, which revealed additional subdomains. I added them to my `/etc/hosts` file.
 
 
 ### On app.blurry.htb
@@ -59,25 +60,25 @@ So, I decided to use a virtual environment (venv). If you already have ClearML r
 ```bash
 sudo apt install python3.11-venv
 ```
-Create and activate the virtual environment:
+2. **Create and activate the virtual environment:**
 
 ```bash
-
 python3 -m venv clearml
-
 source clearml/bin/activate
 ```
-Install ClearML in the virtual environment:
+
+3. **Install ClearML in the virtual environment:**
 
 ```bash
 pip install clearml
 ```
-run clearml-init to configure ClearML in the virtual environment:
+
+4. **Run `clearml-init` to configure ClearML:**
 
 ```bash
 clearml-init
 ```
-when we run clear ml
+When we run `clearml-init`:
 ```
 ──(clearml)─(mofe㉿mofe)-[~/files/htb/blurry]
 └─$ clearml-init              
@@ -92,17 +93,15 @@ In settings page, press "Create new credentials", then press "Copy to clipboard"
 Paste copied configuration here:
 ```
 
-it's asking us to continue the setup with our credentials 
-we can get our new credentials from the dashbaord
+It's asking us to continue the setup with credentials. We can get them from the dashboard.
 
-
-click on get started
+Click on **Get Started**:
 ![2024-09-10_18-12](https://github.com/user-attachments/assets/f51223ab-266f-4330-bcd1-b8c31a12c224)
 
 
 
 
-click on create credentials
+Click on **Create Credentials**:
 ![2024-09-10_18-12_1](https://github.com/user-attachments/assets/78f05bd5-12b4-4274-9af0-3aa8c3acc334)
 
 ![2024-09-10_18-13](https://github.com/user-attachments/assets/e59a8aac-5a81-4dd8-975b-adc30f7d2a61)
@@ -110,7 +109,7 @@ click on create credentials
 ![2024-09-10_18-13_1](https://github.com/user-attachments/assets/0f15b09e-5388-4014-8d49-7482754a89fe)
 
 
-copy the configuration information go back to your terminal and paste it 
+Copy the configuration information, go back to your terminal, and paste it: 
 ```bash
 clearml-init              
 
@@ -148,10 +147,11 @@ ClearML setup completed successfully.
 
 Now that we've set up ClearML, all that's left is to set up our listener, edit the [exploit](https://github.com/h3xm4n/ClearML-vulnerability-exploit-RCE-2024-CVE-2024-24590-/tree/main)  file to include our IP and port number, and then run the exploit.
 
-it takes a short while so be patient in a few moments we get our shell
+It takes a short while — be patient. In a few moments you'll get your shell.
 
-## Privilege Escalation 
-then upgrade your shell
+## Privilege Escalation
+
+After getting the shell, upgrade it. Then run `sudo -l`:
 ```bash
  sudo -l
 Matching Defaults entries for jippity on blurry:
@@ -162,9 +162,9 @@ User jippity may run the following commands on blurry:
     (root) NOPASSWD: /usr/bin/evaluate_model /models/*.pth
 jippity@blurry:~$
 ```
-this output shows that the user jippity can run the /usr/bin/evaluate_model command as root without providing a password. The command can be run with any .pth file located in the /models/ directory. This could potentially be used for a Local Privilege Escalation (LPE) attack if we can craft a .pth with the right payload we might be able to escalate
+This output shows that the user `jippity` can run `/usr/bin/evaluate_model` as root without a password, against any `.pth` file in `/models/`. This is a potential LPE if we can craft a malicious `.pth` with the right payload.
 
-i check the /models/ directory 
+I checked the `/models/` directory:
 
 ```bash
 ls -lad /models
@@ -178,8 +178,7 @@ This means:
     The jippity user can write to the /models directory.
     You can place files in this directory, including your .pth files.
     
- next step was to understand how the /usr/bin/evaluate_model program worked
- it's readable bash file
+The next step was to understand how `/usr/bin/evaluate_model` worked — it's a readable bash script:
 ```bash
 #!/bin/bash
 # Evaluate a given model against our proprietary dataset.
@@ -228,7 +227,7 @@ if [ -f "$MODEL_FILE" ]; then
     /usr/bin/python3 "$PYTHON_SCRIPT" "$MODEL_FILE"
 fi
 ```
-this is a lot to unpack but long strory short
+This is a lot to unpack, but in short:
 Usage Check: The script checks if exactly one argument (path to the model file) is provided.
 
 File Extraction: Depending on the file type:
@@ -323,7 +322,7 @@ if __name__ == "__main__":
         main(model_path)
 
 ```
-i'm not going to fully explain the contents of /models/evaluate_model.py
+I'm not going to fully explain the contents of `/models/evaluate_model.py`,
 
 
 But it is used to load and evaluate a PyTorch model, specifically a CustomCNN (convolutional neural network model with two convolutional layers followed by fully connected layers.)
@@ -331,8 +330,7 @@ But it is used to load and evaluate a PyTorch model, specifically a CustomCNN (c
 then the `load_model(model_path)` function loads the model’s state dictionary from the specified file path and prepares it for evaluation.
 this is where our payload will be fed
 
-after trying a couple of exploits 
-i was getting unsupported file format errors
+After trying a couple of exploits, I kept getting unsupported file format errors:
 ```bash
 sudo /usr/bin/evaluate_model /models/malicious.pth
 [!] Unknown or unsupported file format for /models/malicious.pth
@@ -340,11 +338,9 @@ jippity@blurry:~$ file /models/malicious.pth
 /models/malicious.pth: ASCII text
 ```
 
-after some research i realised this was because the `evaluate_model` script expects model files that are serialized in the PyTorch format
+After some research, I realized this was because the `evaluate_model` script expects model files serialized in the PyTorch format. Given that the script uses `torch.load()`, we can leverage Python's pickle module for this purpose.
 
- Given that the script uses torch.load(), you can leverage Python's pickle module for this purpose.
-
- going forward with that info i came up with this script featuring chatgpt
+With that in mind, I came up with this script (with some help from ChatGPT):
 
 ```python
 import torch
@@ -373,9 +369,9 @@ os: This library gives access to operating system functionalities, which we use 
 
 the `__reduce__` method is hijacked to return a system command (os.system) instead of normal serialized data. When this object is deserialized (unpickled) during model evaluation, the operating system will execute the command provided 
 
-### Priviledge Escalation
-When you run this script it gives you and exploit.pth file
-copy that file to the /models/ directory
+### Privilege Escalation
+
+When you run this script, it creates an `exploit.pth` file. Copy that file to the `/models/` directory:
 
 and run your command
 ```bash
@@ -384,4 +380,4 @@ sudo /usr/bin/evaluate_model /models/exploit.pth
 you'll get a root shell :)
 we’ve successfully pwned Blurry! We used a combination of local privilege escalation and file format exploitation to gain root access. By crafting a malicious .pth file and leveraging the PyTorch model loading mechanism, we bypassed the security checks and executed our payload to escalate privileges
 
-i still got one more in me  🙂
+I've still got one more in me 🙂
