@@ -3,6 +3,7 @@ import { Footer } from '@/partials/Footer';
 import { Navbar } from '@/partials/Navbar';
 import SearchModal from '@/partials/SearchModal.astro';
 import { AppConfig } from '@/utils/AppConfig';
+import '@/styles/global.css';
 
 export interface Props {
   head: {
@@ -53,37 +54,6 @@ const absoluteOgImage = ogImage
     <link rel='alternate' type='application/rss+xml' href='/rss.xml' />
     <link rel='icon' type='image/x-icon' href='/favicon.ico' />
 
-    <style is:global>
-      pre {
-        position: relative;
-      }
-      pre .copy-btn {
-        position: absolute;
-        top: 0.5rem;
-        right: 0.5rem;
-        background: rgb(51 65 85 / 0.9);
-        color: rgb(148 163 184);
-        border: none;
-        border-radius: 0.25rem;
-        padding: 0.2rem 0.55rem;
-        font-size: 0.7rem;
-        font-family: inherit;
-        cursor: pointer;
-        opacity: 0;
-        transition: opacity 0.15s, background 0.15s;
-      }
-      pre:hover .copy-btn {
-        opacity: 1;
-      }
-      pre .copy-btn:hover {
-        background: rgb(71 85 105);
-        color: #fff;
-      }
-      pre .copy-btn.copied {
-        opacity: 1;
-        color: rgb(52 211 153);
-      }
-    </style>
   </head>
   <body class='bg-slate-900 text-gray-100'>
     <Navbar />

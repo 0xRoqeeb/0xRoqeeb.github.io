@@ -1,0 +1,62 @@
+---
+interface Props {
+  currentPage: number;
+  lastPage: number;
+  basePath?: string;
+}
+
+const { currentPage, lastPage, basePath = '/posts' } = Astro.props;
+
+function pageUrl(n: number) {
+  return n === 1 ? `${basePath}/` : `${basePath}/${n}/`;
+}
+
+const pages = Array.from({ length: lastPage }, (_, i) => i + 1);
+---
+
+{lastPage > 1 && (
+  <nav class="flex items-center justify-center gap-1 py-8" aria-label="Pagination">
+    <a
+      href={currentPage > 1 ? pageUrl(currentPage - 1) : undefined}
+      aria-disabled={currentPage === 1}
+      class:list={[
+        'flex h-9 w-9 items-center justify-center rounded border border-slate-700 text-sm transition-colors',
+        currentPage === 1
+          ? 'pointer-events-none text-slate-600'
+          : 'text-gray-400 hover:border-cyan-500 hover:text-cyan-400',
+      ]}
+      aria-label="Previous page"
+    >
+      &#8592;
+    </a>
+
+    {pages.map((n) => (
+      <a
+        href={pageUrl(n)}
+        aria-current={n === currentPage ? 'page' : undefined}
+        class:list={[
+          'flex h-9 w-9 items-center justify-center rounded border text-sm font-medium transition-colors',
+          n === currentPage
+            ? 'border-cyan-500 bg-cyan-500/10 text-cyan-400'
+            : 'border-slate-700 text-gray-400 hover:border-cyan-500 hover:text-cyan-400',
+        ]}
+      >
+        {n}
+      </a>
+    ))}
+
+    <a
+      href={currentPage < lastPage ? pageUrl(currentPage + 1) : undefined}
+      aria-disabled={currentPage === lastPage}
+      class:list={[
+        'flex h-9 w-9 items-center justify-center rounded border border-slate-700 text-sm transition-colors',
+        currentPage === lastPage
+          ? 'pointer-events-none text-slate-600'
+          : 'text-gray-400 hover:border-cyan-500 hover:text-cyan-400',
+      ]}
+      aria-label="Next page"
+    >
+      &#8594;
+    </a>
+  </nav>
+)}

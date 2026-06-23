@@ -1,10 +1,11 @@
 ---
 import type { FrontmatterPage } from 'astro-boilerplate-components';
 import {
-  NewerOlderPagination,
   PaginationHeader,
   Section,
 } from 'astro-boilerplate-components';
+
+import Pagination from '@/partials/Pagination.astro';
 
 import type { IFrontmatterWithTags } from '@/partials/PostCard';
 import { PostGallery } from '@/partials/PostGallery';
@@ -47,9 +48,7 @@ const description =
     <PostGallery postList={page.data} />
   </Section>
 
-  <Section>
-    <NewerOlderPagination page={page} />
-  </Section>
+  <Pagination currentPage={page.currentPage} lastPage={page.lastPage} />
 
   {/* <CTA /> */}
 </Base>
